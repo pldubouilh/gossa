@@ -35,7 +35,7 @@ func postDummyFile(t *testing.T, url string, path string) string {
 	req, err := http.NewRequest("POST", url, body)
 	dieMaybe(t, err)
 	req.Header.Set("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundarycCRIderiXxJWEUcU")
-	req.Header.Set("Bossa-Path", path)
+	req.Header.Set("Gossa-Path", path)
 
 	resp, err := http.DefaultClient.Do(req)
 	dieMaybe(t, err)

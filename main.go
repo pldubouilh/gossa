@@ -156,7 +156,7 @@ func doContent(w http.ResponseWriter, r *http.Request) {
 }
 
 func upload(w http.ResponseWriter, r *http.Request) {
-	unescaped, _ := url.PathUnescape(r.Header.Get("bossa-path"))
+	unescaped, _ := url.PathUnescape(r.Header.Get("gossa-path"))
 	fullPath, err := checkPath(unescaped)
 
 	logVerb("Up", err, fullPath)
@@ -232,7 +232,7 @@ func main() {
 	}
 
 	var hostString = *host + ":" + *port
-	fmt.Println("Bossa startig on directory " + initPath)
+	fmt.Println("Gossa startig on directory " + initPath)
 	fmt.Println("Listening on http://" + hostString)
 
 	var root = http.Dir(initPath)

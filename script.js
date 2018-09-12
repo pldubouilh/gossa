@@ -73,7 +73,7 @@ function postFile (file, path) {
   path = decodeURI(location.pathname).slice(0, -1) + path
 
   xhr.open('POST', window.location.origin + '/post')
-  xhr.setRequestHeader("bossa-path", encodeURIComponent(path))
+  xhr.setRequestHeader("gossa-path", encodeURIComponent(path))
   xhr.upload.id = newBar(path)
 
   const formData = new window.FormData()

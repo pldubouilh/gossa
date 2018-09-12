@@ -6,7 +6,7 @@ build:
 build-all:
 	make embed
 	env GOOS=linux GOARCH=amd64 go build gossa.go
-	mv gossa gossa-linux
+	mv gossa gossa-linux64
 	env GOOS=linux GOARCH=arm go build gossa.go
 	mv gossa gossa-linux-arm
 	env GOOS=linux GOARCH=arm64 go build gossa.go
@@ -20,7 +20,7 @@ build-all:
 clean:
 	-rm gossa.go
 	-rm gossa
-	-rm gossa-linux
+	-rm gossa-linux64
 	-rm gossa-linux-arm
 	-rm gossa-linux-arm64
 	-rm gossa-mac
