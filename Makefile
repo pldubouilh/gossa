@@ -37,7 +37,7 @@ ci:
 	go fmt
 	go vet
 	timeout 5 go run main.go fixture &
-	go test
+	sleep 1 && go test
 
 ci-watch:
 	ls main.go script.js main_test.go | entr -rc make ci
