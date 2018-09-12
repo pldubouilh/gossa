@@ -3,6 +3,8 @@ gossa
 
 ![e](https://user-images.githubusercontent.com/760637/45410804-f2c00e80-b672-11e8-8c2b-51d7fc0915aa.gif)
 
+[![Build Status](https://travis-ci.org/pldubouilh/bossa.svg?branch=master)](https://travis-ci.org/pldubouilh/bossa)
+
 🎶 A fast and simple webserver for your files. It's dependency-free and with under 250 lines for the server code, easily code-reviewable.
 
 ### features
