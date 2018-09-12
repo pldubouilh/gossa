@@ -80,7 +80,6 @@ function postFile (file, path) {
   formData.append(file.name, file)
 
   xhr.upload.addEventListener('progress', a => {
-    console.log("YA")
     updatePercent(a.target.id, a.loaded / a.total)
   })
 
@@ -346,6 +345,10 @@ document.body.addEventListener('keydown', e => {
         e.preventDefault()
         return picsToggle()
       }
+
+    case 'Enter':
+      e.preventDefault()
+      return picsOn(true) || picsNav(true) || getASelected().click()
   }
 
   // Ctrl keys

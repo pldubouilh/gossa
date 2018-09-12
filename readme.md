@@ -29,7 +29,7 @@ make ci
 ```
 
 ### keyboard shortcuts
-  * Arrows  browse throughout the files/directories and pictures
+  * Arrows/Enter  browse throughout the files/directories and pictures
   * Ctrl/Meta + C  copy selected path to clipboard
   * Ctrl/Meta + D  create a new directory
 
