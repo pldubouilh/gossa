@@ -29,9 +29,10 @@ make ci
 ```
 
 ### keyboard shortcuts
-  * Arrows  browse throughout the files/directories and pictures
+  * Arrows/Enter  browse throughout the files/directories and pictures
   * Ctrl/Meta + C  copy selected path to clipboard
   * Ctrl/Meta + D  create a new directory
+  * \<any letter\>  search on first letters in filename
 
 ### built blobs
 built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases).
