@@ -29,9 +29,8 @@ clean:
 embed:
 	echo "embedding css and js into binary"
 	cp main.go gossa.go
-	perl -pe 's/some_css/`cat style.css`/ge' -i gossa.go
-	perl -pe 's/some_js/`cat script.js`/ge' -i gossa.go
-	go build gossa.go
+	perl -pe 's/css_will_be_here/`cat style.css`/ge' -i gossa.go
+	perl -pe 's/js_will_be_here/`cat script.js`/ge' -i gossa.go
 
 ci:
 	go fmt
@@ -42,8 +41,10 @@ ci:
 ci-watch:
 	ls main.go script.js main_test.go | entr -rc make ci
 
-debug-watch:
-	ls main.go script.js | entr -rc go run main.go fixture
+watch:
+	ls main.go script.js | entr -rc make run
 
 run:
-	go run main.go fixture
+	make embed
+	go run gossa.go fixture
+	rm gossa.go

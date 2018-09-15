@@ -31,8 +31,8 @@ var verb = flag.Bool("verb", true, "verbosity")
 var skipHidden = flag.Bool("k", true, "skip hidden files")
 
 var initPath = ""
-var css = `some_css`
-var jsTag = `some_js`
+var css = `css_will_be_here`  // js will be embedded here
+var jsTag = `js_will_be_here` // id.
 var units = [8]string{"k", "M", "G", "T", "P", "E", "Z", "Y"}
 
 type rpcCall struct {
@@ -71,8 +71,18 @@ func row(name string, href string, size float64, ext string) string {
 				<td><i class="btn icon icon-` + strings.ToLower(ext) + ` icon-blank"></i></td>
 				<td class="file-size"><code>` + sizeToString(size) + `</code></td>
 				<td class="arrow"><i class="arrow-icon"></i></td>
-				<td class="display-name"><a href="` + url.PathEscape(href) + `">` + name + `</a></td>
+				<td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="` + url.PathEscape(href) + `">` + name + `</a></td>
 			</tr>`
+}
+
+func extraFolder(loc string) string {
+	if !strings.HasSuffix(loc, "/") {
+		loc = loc + "/"
+	}
+	if !strings.HasPrefix(loc, "/") {
+		loc = "/" + loc
+	}
+	return `<a class="ic fav icon-large-folder" onclick="return onClickLink(event)" href="` + loc + `">` + loc + `</a>`
 }
 
 func replyList(w http.ResponseWriter, path string) {
@@ -88,12 +98,11 @@ func replyList(w http.ResponseWriter, path string) {
       <script>window.onload = function(){` + jsTag + `}</script>
       <style type="text/css">` + css + `</style>
     </head>
-    <body>
-      <div onclick="window.mkdir()" id="newFolder"></div>
-      <div onclick="window.picsToggle()" id="picsToggle"></div>
+	<body>
+	  <div class="icHolder"><div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
+	  <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>` + extraFolder("/hols/aaa") + `</div>
       <div id="pics" style="display:none;"> <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img  onclick="window.picsNav()" id="picsHolder"/> <span id="picsLabel"></span> </div>
       <div id="drop-grid"> Drop here to upload </div>
-      <div id="progressBars"></div>
       <h1>.` + html.EscapeString(path) + `</h1>
 	  <table>`
 
@@ -123,8 +132,10 @@ func replyList(w http.ResponseWriter, path string) {
 	}
 
 	var resp = head + dirs + files + `</table>
+	      <div id="progressBars"></div>
+
           <br><address><a href="https://github.com/pldubouilh/gossa">Gossa  🎶</a></address>
-					</body></html>`
+		</body></html>`
 
 	w.Write([]byte(resp))
 }
@@ -174,22 +185,28 @@ func upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func rpc(w http.ResponseWriter, r *http.Request) {
+	var err error
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
 	bodyString := string(bodyBytes)
 	var payload rpcCall
 	json.Unmarshal([]byte(bodyString), &payload)
 
-	unparsed, _ := url.PathUnescape(payload.Args[0])
-	p, err := checkPath(unparsed)
-	logVerb("RPC", err, unparsed)
-
-	if err != nil {
-		w.Write([]byte("error"))
-		return
-	} else if payload.Call == "mkdirp" {
-		os.MkdirAll(p, os.ModePerm)
+	for i := range payload.Args {
+		payload.Args[i], err = checkPath(payload.Args[i])
+		if err != nil {
+			logVerb("Cant read path", err, payload)
+			w.Write([]byte("error"))
+			return
+		}
 	}
 
+	if payload.Call == "mkdirp" {
+		err = os.MkdirAll(payload.Args[0], os.ModePerm)
+	} else if payload.Call == "mv" {
+		err = os.Rename(payload.Args[0], payload.Args[1])
+	}
+
+	logVerb("RPC", err, payload)
 	w.Write([]byte("ok"))
 }
 
@@ -198,7 +215,7 @@ func checkPath(p string) (string, error) {
 	fp, err := filepath.Abs(p)
 
 	if err != nil || !strings.HasPrefix(fp, initPath) {
-		return fp, errors.New("error")
+		return "", errors.New("error")
 	}
 
 	return fp, nil
@@ -216,20 +233,6 @@ func main() {
 	var err error
 	initPath, err = filepath.Abs(initPath)
 	check(err)
-
-	// Read CSS file if not embedded
-	if len(css) < 10 {
-		c, err := ioutil.ReadFile("./style.css")
-		check(err)
-		css = string(c)
-	}
-
-	// Read JS file if not embedded
-	if len(jsTag) < 10 {
-		j, err := ioutil.ReadFile("./script.js")
-		check(err)
-		jsTag = string(j)
-	}
 
 	var hostString = *host + ":" + *port
 	fmt.Println("Gossa startig on directory " + initPath)
