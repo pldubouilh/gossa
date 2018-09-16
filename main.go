@@ -94,7 +94,8 @@ func replyList(w http.ResponseWriter, path string) {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width">
-      <title>` + html.EscapeString(path) + `</title>
+	  <title>` + html.EscapeString(path) + `</title>
+	  <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAHlBMVEUAAAAAAACAgIDAwMD///8AAIAAAP8A//+AgAD//wACp+eHAAAAAXRSTlMAQObYZgAAAAFiS0dEBI9o2VEAAAAHdElNRQfiBhoALCQijt0NAAAAuElEQVQ4y92TQRKCMAxF0w4HCC5c18oJxAMwDEfAK+g52OkN9LYqbTRJ6Uyd0Y1vU+DlT0kJAAED+oJAtYKqTAJUiqkwmUAoxiVhMoFnOS4LkwZ8YBVXR89tK9hvSGyl6EnYQeJJNDLQlgjPaLioGSMX6+ObQnH6nvh88z8RB4YQYhaKvnlGeA3Ndq3Rw/6qVNjdz8X5wcTunY0vfxlu14k6cRa6Kh7RLOi8ugrQxK5mQS0i+4FVz3dvYZO5KVb6VAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxOC0wNi0yNlQwMDo0NDozNi0wNDowMNQdHpQAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTgtMDYtMjZUMDA6NDQ6MzYtMDQ6MDClQKYoAAAAAElFTkSuQmCC" rel="icon" type="image/png"/>
       <script>window.onload = function(){` + jsTag + `}</script>
       <style type="text/css">` + css + `</style>
     </head>
