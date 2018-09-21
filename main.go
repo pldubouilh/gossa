@@ -34,6 +34,7 @@ var initPath = ""
 var css = `css_will_be_here`  // js will be embedded here
 var jsTag = `js_will_be_here` // id.
 var units = [8]string{"k", "M", "G", "T", "P", "E", "Z", "Y"}
+var icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAHlBMVEUAAAAAAACAgIDAwMD///8AAIAAAP8A//+AgAD//wACp+eHAAAAAXRSTlMAQObYZgAAAAFiS0dEBI9o2VEAAAAHdElNRQfiBhoALCQijt0NAAAAuElEQVQ4y92TQRKCMAxF0w4HCC5c18oJxAMwDEfAK+g52OkN9LYqbTRJ6Uyd0Y1vU+DlT0kJAAED+oJAtYKqTAJUiqkwmUAoxiVhMoFnOS4LkwZ8YBVXR89tK9hvSGyl6EnYQeJJNDLQlgjPaLioGSMX6+ObQnH6nvh88z8RB4YQYhaKvnlGeA3Ndq3Rw/6qVNjdz8X5wcTunY0vfxlu14k6cRa6Kh7RLOi8ugrQxK5mQS0i+4FVz3dvYZO5KVb6VAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxOC0wNi0yNlQwMDo0NDozNi0wNDowMNQdHpQAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTgtMDYtMjZUMDA6NDQ6MzYtMDQ6MDClQKYoAAAAAElFTkSuQmCC"
 
 type rpcCall struct {
 	Call string   `json:"call"`
@@ -95,16 +96,16 @@ func replyList(w http.ResponseWriter, path string) {
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width">
 	  <title>` + html.EscapeString(path) + `</title>
-	  <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAHlBMVEUAAAAAAACAgIDAwMD///8AAIAAAP8A//+AgAD//wACp+eHAAAAAXRSTlMAQObYZgAAAAFiS0dEBI9o2VEAAAAHdElNRQfiBhoALCQijt0NAAAAuElEQVQ4y92TQRKCMAxF0w4HCC5c18oJxAMwDEfAK+g52OkN9LYqbTRJ6Uyd0Y1vU+DlT0kJAAED+oJAtYKqTAJUiqkwmUAoxiVhMoFnOS4LkwZ8YBVXR89tK9hvSGyl6EnYQeJJNDLQlgjPaLioGSMX6+ObQnH6nvh88z8RB4YQYhaKvnlGeA3Ndq3Rw/6qVNjdz8X5wcTunY0vfxlu14k6cRa6Kh7RLOi8ugrQxK5mQS0i+4FVz3dvYZO5KVb6VAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxOC0wNi0yNlQwMDo0NDozNi0wNDowMNQdHpQAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTgtMDYtMjZUMDA6NDQ6MzYtMDQ6MDClQKYoAAAAAElFTkSuQmCC" rel="icon" type="image/png"/>
+	  <link href="` + icon + `" rel="icon" type="image/png"/>
       <script>window.onload = function(){` + jsTag + `}</script>
       <style type="text/css">` + css + `</style>
     </head>
 	<body>
+      <div id="drop-grid"> Drop here to upload </div>
+      <h1>.` + html.EscapeString(path) + `</h1>
 	  <div class="icHolder"><div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
 	  <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>` + extraFolder("/hols/aaa") + `</div>
       <div id="pics" style="display:none;"> <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img  onclick="window.picsNav()" id="picsHolder"/> <span id="picsLabel"></span> </div>
-      <div id="drop-grid"> Drop here to upload </div>
-      <h1>.` + html.EscapeString(path) + `</h1>
 	  <table>`
 
 	_files, err := ioutil.ReadDir(initPath + path)
@@ -132,23 +133,14 @@ func replyList(w http.ResponseWriter, path string) {
 		}
 	}
 
-	var resp = head + dirs + files + `</table>
-	      <div id="progressBars"></div>
-
-          <br><address><a href="https://github.com/pldubouilh/gossa">Gossa  🎶</a></address>
-		</body></html>`
-
-	w.Write([]byte(resp))
+	w.Write([]byte(head + dirs + files + `</table>
+		<br><address><a href="https://github.com/pldubouilh/gossa">Gossa  🎶</a></address>
+		<div id="progress" style="display:none;"><span id="dlBarName"></span><div id="dlBarPc">1%</div></div>
+	</body></html>`))
 }
 
 func doContent(w http.ResponseWriter, r *http.Request) {
 	path := html.UnescapeString(r.URL.Path)
-
-	if strings.Contains(path, "/favicon.ico") {
-		w.Write([]byte(" "))
-		return
-	}
-
 	fullPath, errPath := checkPath(path)
 	stat, errStat := os.Stat(fullPath)
 

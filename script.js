@@ -12,7 +12,6 @@ function rpcFs (call, args, cb) {
   // Prefix path with pwd if not absolute
   const decodedPath = decodeURI(location.pathname)
   args = args.map(a => a.startsWith('/') ? a : decodedPath + a)
-  // args = args.map(a => encodeURIComponent(a))
 
   console.log('RPC', call, args)
   const xhr = new window.XMLHttpRequest()
@@ -44,25 +43,6 @@ function warning (e) {
   return 'Leaving will interrupt transfer\nAre you sure you want to leave?'
 }
 
-// File upload
-function newBar (name) {
-  const id = Math.random().toString(36).substring(7)
-
-  document.getElementById('progressBars').innerHTML += '\
-    <div id="' + id + '" class="barBackground">\
-      <span> ' + name.split('/').pop() + ' <span>\
-      <div class="barForeground">1%</div>\
-    </div>'
-  return id
-}
-
-function updatePercent (id, percent) {
-  const el = document.getElementById(id).querySelectorAll('div.barForeground')[0]
-  const width = Math.floor(100 * percent).toString() + '%'
-  el.innerText = width
-  el.style.width = width
-}
-
 function shouldRefresh () {
   totalDone += 1
   if (totalUploads === totalDone) {
@@ -70,33 +50,52 @@ function shouldRefresh () {
     console.log('Done uploading ' + totalDone + ' files')
     totalDone = 0
     totalUploads = 0
-    document.getElementById('progressBars').innerHTML = ''
+    totalUploadsSize = 0
+    totalUploadedSize = []
+    barDiv.style.display = 'none'
     refresh()
   }
 }
 
 const checkDupes = test => allA.find(a => a.innerText.replace('/', '') === test)
 
+const barName = document.getElementById('dlBarName')
+
+const barPc = document.getElementById('dlBarPc')
+
+const barDiv = document.getElementById('progress')
+
+let totalDone = 0
+let totalUploads = 0
+let totalUploadsSize = 0
+let totalUploadedSize = []
+
+function updatePercent (ev) {
+  totalUploadedSize[ev.target.id] = ev.loaded
+  const ttlDone = totalUploadedSize.reduce((s, x) => s + x)
+  const pc = Math.floor(100 * ttlDone / totalUploadsSize) + '%'
+  barPc.innerText = pc
+  barPc.style.width = pc
+}
+
 function postFile (file, path) {
-  totalUploads += 1
+  path = decodeURI(location.pathname).slice(0, -1) + path
   window.onbeforeunload = warning
 
-  const xhr = new window.XMLHttpRequest()
-  path = decodeURI(location.pathname).slice(0, -1) + path
-
-  xhr.open('POST', location.origin + '/post')
-  xhr.setRequestHeader('gossa-path', encodeURIComponent(path))
-  xhr.upload.id = newBar(path)
+  barDiv.style.display = 'block'
+  totalUploads += 1
+  totalUploadsSize += file.size
+  barName.innerText = totalUploads > 1 ? totalUploads + ' files' : file.name
 
   const formData = new window.FormData()
   formData.append(file.name, file)
 
-  xhr.upload.addEventListener('progress', a => {
-    updatePercent(a.target.id, a.loaded / a.total)
-  })
-
+  const xhr = new window.XMLHttpRequest()
+  xhr.open('POST', location.origin + '/post')
+  xhr.setRequestHeader('gossa-path', encodeURIComponent(path))
   xhr.upload.addEventListener('load', shouldRefresh)
-
+  xhr.upload.addEventListener('progress', updatePercent)
+  xhr.upload.id = totalUploads
   xhr.send(formData)
 }
 
@@ -190,9 +189,6 @@ document.ondrop = (e) => {
   return false
 }
 
-let totalUploads = 0
-let totalDone = 0
-
 const getArrowSelected = () => document.querySelectorAll('i.arrow-selected')[0]
 
 function getASelected () {
@@ -218,7 +214,7 @@ function restoreCursorPos () {
 
   if (!a) {
     if (allA[0].innerText === '../') {
-      a = allA[1]
+      a = allA[1] || allA[0]
     } else {
       a = allA[0]
     }

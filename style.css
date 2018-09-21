@@ -34,12 +34,16 @@ td.display-name {
   width: 100%;
 }
 
-
+h1 {
+  display: inline-block;
+  margin-top: 10px;
+}
 
 .icHolder {
-  position: fixed;
-  right: 20px;
-  top: 20px;
+  display: inline-block;
+  right: 15px;
+  top: 25px;
+  position: absolute;
 }
 
 .ic {
@@ -69,7 +73,7 @@ td.display-name {
   zoom: 1 !important;
 }
 
-#progressBars {
+#progress {
   background-color: white;
   width: 99%;
   left: 0.5%;
@@ -80,18 +84,14 @@ td.display-name {
   max-height: 50%;
   overflow-y: scroll;
   overflow-x: hidden;
-  }
-
-#progressBars::-webkit-scrollbar {
-  display: none;
 }
 
-.barBackground {
+#dlBarName {
   width: 100%;
   margin-top: 15px;
 }
 
-.barForeground {
+#dlBarPc {
   width: 1%;
   height: 30px;
   text-align: center;
