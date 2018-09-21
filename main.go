@@ -34,7 +34,7 @@ var initPath = ""
 var css = `css_will_be_here`  // js will be embedded here
 var jsTag = `js_will_be_here` // id.
 var units = [8]string{"k", "M", "G", "T", "P", "E", "Z", "Y"}
-var icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAHlBMVEUAAAAAAACAgIDAwMD///8AAIAAAP8A//+AgAD//wACp+eHAAAAAXRSTlMAQObYZgAAAAFiS0dEBI9o2VEAAAAHdElNRQfiBhoALCQijt0NAAAAuElEQVQ4y92TQRKCMAxF0w4HCC5c18oJxAMwDEfAK+g52OkN9LYqbTRJ6Uyd0Y1vU+DlT0kJAAED+oJAtYKqTAJUiqkwmUAoxiVhMoFnOS4LkwZ8YBVXR89tK9hvSGyl6EnYQeJJNDLQlgjPaLioGSMX6+ObQnH6nvh88z8RB4YQYhaKvnlGeA3Ndq3Rw/6qVNjdz8X5wcTunY0vfxlu14k6cRa6Kh7RLOi8ugrQxK5mQS0i+4FVz3dvYZO5KVb6VAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxOC0wNi0yNlQwMDo0NDozNi0wNDowMNQdHpQAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTgtMDYtMjZUMDA6NDQ6MzYtMDQ6MDClQKYoAAAAAElFTkSuQmCC"
+var favicon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAGFBMVEUAAACAgIDAwMAAAAD//////wAAAP+AgACyGYBKAAAAAXRSTlMAQObYZgAAAAFiS0dEBI9o2VEAAAAHdElNRQfiBhgXAzXpQrjsAAAArklEQVQoz3WQQQ7CIBBF4QbS4gEsYV8DHkAc3Rev0Buw8PoOQ9KZjPGlm76+hE+N+cdJvdughC+r+OqcAxCJB8CHE1vqBiASH6OHFycj2NEE50g8KdgxybBSMQI0oTYqKOim3EjcR9BNQGGnhSmJVh08PG45R+aScctUmS3jXFlEXdRroKHMnOgqzNxUQcNk8W7jd/CQ1IUcklSx6KImo45pRh1D4iPowiTBan74AnnnVMHA9EjhAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE4LTA2LTI0VDIzOjAzOjUzLTA0OjAwyUvdTwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOC0wNi0yNFQyMzowMzo1My0wNDowMLgWZfMAAAAASUVORK5CYII="
 
 type rpcCall struct {
 	Call string   `json:"call"`
@@ -96,7 +96,7 @@ func replyList(w http.ResponseWriter, path string) {
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width">
 	  <title>` + html.EscapeString(path) + `</title>
-	  <link href="` + icon + `" rel="icon" type="image/png"/>
+	  <link href="` + favicon + `" rel="icon" type="image/png"/>
       <script>window.onload = function(){` + jsTag + `}</script>
       <style type="text/css">` + css + `</style>
     </head>
