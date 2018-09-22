@@ -307,8 +307,8 @@ function setImage (src) {
   storeLastArrowSrc(src)
 }
 
-function picsOn (ifImgSelected) {
-  const href = getASelected().href
+function picsOn (ifImgSelected, href) {
+  href = href || getASelected().href
 
   if (isPicMode()) {
     return false
@@ -412,10 +412,14 @@ document.body.addEventListener('keydown', e => {
 }, false)
 
 window.onClickLink = e => {
-  if (!e.target.innerText.endsWith('/')) { return true }
-  storeLastArrowSrc(e.target.href)
-  browseTo(e.target.href)
-  return false
+  if (e.target.innerText.endsWith('/')) {
+    storeLastArrowSrc(e.target.href)
+    browseTo(e.target.href)
+    return false
+  } else if (picsOn(true, e.target.href)) {
+    return false
+  }
+  return true
 }
 
 function init () {
