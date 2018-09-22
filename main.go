@@ -76,16 +76,6 @@ func row(name string, href string, size float64, ext string) string {
 			</tr>`
 }
 
-func extraFolder(loc string) string {
-	if !strings.HasSuffix(loc, "/") {
-		loc = loc + "/"
-	}
-	if !strings.HasPrefix(loc, "/") {
-		loc = "/" + loc
-	}
-	return `<a class="ic fav icon-large-folder" onclick="return onClickLink(event)" href="` + loc + `">` + loc + `</a>`
-}
-
 func replyList(w http.ResponseWriter, path string) {
 	if !strings.HasSuffix(path, "/") {
 		path += "/"
@@ -104,7 +94,7 @@ func replyList(w http.ResponseWriter, path string) {
       <div id="drop-grid"> Drop here to upload </div>
       <h1>.` + html.EscapeString(path) + `</h1>
 	  <div class="icHolder"><div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
-	  <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>` + extraFolder("/hols/aaa") + `</div>
+	  <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div></div>
       <div id="pics" style="display:none;"> <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img  onclick="window.picsNav()" id="picsHolder"/> <span id="picsLabel"></span> </div>
 	  <table>`
 
