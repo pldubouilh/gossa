@@ -1,5 +1,4 @@
 /* eslint-env browser */
-/* global allA  */
 /* eslint-disable no-multi-str */
 
 function cancelDefault (e) {
@@ -9,10 +8,6 @@ function cancelDefault (e) {
 
 // RPC
 function rpcFs (call, args, cb) {
-  // Prefix path with pwd if not absolute
-  const decodedPath = decodeURI(location.pathname)
-  args = args.map(a => a.startsWith('/') ? a : decodedPath + a)
-
   console.log('RPC', call, args)
   const xhr = new window.XMLHttpRequest()
   xhr.open('POST', location.origin + '/rpc')
@@ -21,8 +16,10 @@ function rpcFs (call, args, cb) {
   xhr.onload = cb
 }
 
+const prependPath = (a) => a.startsWith('/') ? a : decodeURI(location.pathname) + a
+
 // RPC Handlers
-const mkdirCall = (path, cb) => rpcFs('mkdirp', [path], cb)
+const mkdirCall = (path, cb) => rpcFs('mkdirp', [prependPath(path)], cb)
 
 const mvCall = (path1, path2, cb) => rpcFs('mv', [path1, path2], cb)
 
@@ -178,9 +175,9 @@ document.ondrop = (e) => {
     const t = e.target.classList.contains('fav') ? e.target : getLink(e)
     if (!t || !t.innerText.endsWith('/')) return
     e.dataTransfer.items[0].getAsString(s => {
-      const root = decodeURI(s.replace(location.href, ''))
+      const root = decodeURIComponent(s.replace(location.href, ''))
       const dest = t.innerText + root
-      mvCall(root, dest, refresh)
+      mvCall(prependPath(root), prependPath(dest), refresh)
     })
   } else {
     Array.from(e.dataTransfer.items).forEach(pushEntry)
@@ -360,6 +357,18 @@ function setCursorToClosestTyped () {
   restoreCursorPos()
 }
 
+let cuts = []
+
+function onPaste () {
+  if (!cuts.length) { return refresh() }
+  const root = cuts.pop()
+  const pwd = decodeURIComponent(location.pathname)
+  const isFolderDest = getASelected().innerText.endsWith('/')
+  const filename = root.split('/').pop()
+  const dest = isFolderDest ? pwd + getASelected().innerText : pwd
+  mvCall(root, dest + filename, onPaste)
+}
+
 // Kb handler
 document.body.addEventListener('keydown', e => {
   switch (e.code) {
@@ -373,7 +382,6 @@ document.body.addEventListener('keydown', e => {
       return picsNav(false) || moveArrow(false)
 
     case 'Enter':
-    case 'Space':
     case 'ArrowRight':
       e.preventDefault()
       return picsOn(true) || picsNav(true) || getASelected().click()
@@ -399,6 +407,16 @@ document.body.addEventListener('keydown', e => {
       case 'KeyC':
         e.preventDefault()
         return isPicMode() || cpPath()
+
+      case 'KeyX':
+        e.preventDefault()
+        const x = decodeURIComponent(getASelected().href).replace(location.origin, '')
+        cuts.push(prependPath(x))
+        return false
+
+      case 'KeyV':
+        e.preventDefault()
+        return onPaste()
     }
   }
 

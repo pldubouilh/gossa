@@ -3,6 +3,28 @@ build:
 	go build gossa.go
 	rm gossa.go
 
+embed:
+	echo "embedding css and js into binary"
+	cp main.go gossa.go
+	perl -pe 's/css_will_be_here/`cat style.css`/ge' -i gossa.go
+	perl -pe 's/js_will_be_here/`cat script.js`/ge' -i gossa.go
+
+run:
+	make build
+	./gossa fixture
+
+ci:
+	go fmt
+	go vet
+	timeout 5 make run &
+	sleep 1 && go test
+
+ci-watch:
+	ls main.go script.js main_test.go | entr -rc make ci
+
+watch:
+	ls main.go script.js | entr -rc make run
+
 build-all:
 	make embed
 	env GOOS=linux GOARCH=amd64 go build gossa.go
@@ -25,26 +47,3 @@ clean:
 	-rm gossa-linux-arm64
 	-rm gossa-mac
 	-rm gossa-windows.exe
-
-embed:
-	echo "embedding css and js into binary"
-	cp main.go gossa.go
-	perl -pe 's/css_will_be_here/`cat style.css`/ge' -i gossa.go
-	perl -pe 's/js_will_be_here/`cat script.js`/ge' -i gossa.go
-
-ci:
-	go fmt
-	go vet
-	timeout 5 go run main.go fixture &
-	sleep 1 && go test
-
-ci-watch:
-	ls main.go script.js main_test.go | entr -rc make ci
-
-watch:
-	ls main.go script.js | entr -rc make run
-
-run:
-	make embed
-	go run gossa.go fixture
-	rm gossa.go

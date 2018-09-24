@@ -8,19 +8,20 @@ gossa
 🎶 A fast and simple webserver for your files. It's dependency-free and with under 250 lines for the server code, easily code-reviewable.
 
 ### features
-  * upload files and folders with drag-and-drop
   * browse throughout files/directories
+  * upload files and folders with drag-and-drop
   * create new folders
+  * move files to different directories with drag-and-drop and keyboard
   * browse throughout pictures with a full-screen carousel
   * simple keyboard navigation/shortcuts
   * fast ; fills my 80MB/s AC wifi link
 
 ### run
 ```sh
-# run
-go run main.go fixture
+# run on test fixture folder
+make run
 
-# build embedding the js/css in the binary
+# build
 make
 ./gossa --help
 
@@ -32,6 +33,8 @@ make ci
   * Arrows/Enter  browse throughout the files/directories and pictures
   * Ctrl/Meta + C  copy selected path to clipboard
   * Ctrl/Meta + D  create a new directory
+  * Ctrl/Meta + X  cut selected path
+  * Ctrl/Meta + V  paste paths previously selected with the above shortcut to directory
   * \<any letter\>  search on first letters in filename
 
 ### built blobs
