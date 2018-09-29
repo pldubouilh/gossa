@@ -65,19 +65,19 @@ func testDefaults(t *testing.T, url string) string {
 		t.Fatal("error header")
 	}
 
-	if !strings.Contains(bodyStr, `<a href="hols">hols/</a>`) {
+	if !strings.Contains(bodyStr, `href="hols">hols/</a>`) {
 		t.Fatal("error hols folder")
 	}
 
-	if !strings.Contains(bodyStr, `<a href="curimit@gmail.com%20%2840%25%29">curimit@gmail.com (40%)/</a>`) {
+	if !strings.Contains(bodyStr, `href="curimit@gmail.com%20%2840%25%29">curimit@gmail.com (40%)/</a>`) {
 		t.Fatal("error curimit@gmail.com (40%) folder")
 	}
 
-	if !strings.Contains(bodyStr, `<a href="%E4%B8%AD%E6%96%87">中文/</a>`) {
+	if !strings.Contains(bodyStr, `href="%E4%B8%AD%E6%96%87">中文/</a>`) {
 		t.Fatal("error 中文 folder")
 	}
 
-	if !strings.Contains(bodyStr, `<tr> <td><i class="btn icon icon-types icon-blank"></i></td> <td class="file-size"><code>0.2k</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a href="custom_mime_type.types">custom_mime_type.types</a></td> </tr>`) {
+	if !strings.Contains(bodyStr, `<tr> <td><i class="btn icon icon-types icon-blank"></i></td> <td class="file-size"><code>0.2k</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="custom_mime_type.types">custom_mime_type.types</a></td> </tr>`) {
 		t.Fatal("error row custom_mime_type")
 	}
 
@@ -110,26 +110,38 @@ func TestGetFolder(t *testing.T) {
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test mkdir rpc")
-	bodyStr = postJSON(t, "http://127.0.0.1:8001/rpc", `{"call":"mkdirp","args":["%2FAAA"]}`)
+	bodyStr = postJSON(t, "http://127.0.0.1:8001/rpc", `{"call":"mkdirp","args":["/AAA"]}`)
 	if !strings.Contains(bodyStr, `ok`) {
 		t.Fatal("error returned value")
 	}
 
 	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if !strings.Contains(bodyStr, `<tr> <td><i class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code>0</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a href="AAA">AAA/</a></td> </tr>`) {
+	if !strings.Contains(bodyStr, `<tr> <td><i class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code>0</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="AAA">AAA/</a></td> </tr>`) {
 		t.Fatal("error new folder created")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test invalid mkdir rpc")
-	bodyStr = postJSON(t, "http://127.0.0.1:8001/rpc", `{"call":"mkdirp","args":["..%2FBBB"]}`)
+	bodyStr = postJSON(t, "http://127.0.0.1:8001/rpc", `{"call":"mkdirp","args":["../BBB"]}`)
 	if !strings.Contains(bodyStr, `error`) {
 		t.Fatal("error not returned")
 	}
 
-	bodyStr = postJSON(t, "http://127.0.0.1:8001/rpc", `{"call":"mkdirp","args":["%2F..%2FBBB"]}`)
+	bodyStr = postJSON(t, "http://127.0.0.1:8001/rpc", `{"call":"mkdirp","args":["/../BBB"]}`)
 	if !strings.Contains(bodyStr, `error`) {
 		t.Fatal("error not returned")
+	}
+
+	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test mv rpc")
+	bodyStr = postJSON(t, "http://127.0.0.1:8001/rpc", `{"call":"mv","args":["/AAA", "/hols/AAA"]}`)
+	if !strings.Contains(bodyStr, `ok`) {
+		t.Fatal("error returned value")
+	}
+
+	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
+	if strings.Contains(bodyStr, `<tr> <td><i class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code>0</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="AAA">AAA/</a></td> </tr>`) {
+		t.Fatal("error folder moved")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
@@ -145,7 +157,7 @@ func TestGetFolder(t *testing.T) {
 	}
 
 	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if !strings.Contains(bodyStr, `<tr> <td><i class="btn icon icon-하 하 icon-blank"></i></td> <td class="file-size"><code>0.0k</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a href="%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1">하 하</a></td> </tr>`) {
+	if !strings.Contains(bodyStr, `<tr> <td><i class="btn icon icon-하 하 icon-blank"></i></td> <td class="file-size"><code>0.0k</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1">하 하</a></td> </tr>`) {
 		t.Fatal("error checking new file row")
 	}
 

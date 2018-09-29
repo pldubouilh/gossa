@@ -14,11 +14,9 @@ run:
 	./gossa fixture
 
 ci:
-	cd src
-	go fmt
-	go vet
+	cd src && go vet && go fmt
 	timeout 5 make run &
-	sleep 1 && go test
+	cd src && sleep 1 && go test
 
 ci-watch:
 	ls main.go script.js main_test.go | entr -rc make ci
