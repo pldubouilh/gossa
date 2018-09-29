@@ -5,15 +5,16 @@ build:
 
 embed:
 	echo "embedding css and js into binary"
-	cp main.go gossa.go
-	perl -pe 's/css_will_be_here/`cat style.css`/ge' -i gossa.go
-	perl -pe 's/js_will_be_here/`cat script.js`/ge' -i gossa.go
+	cp src/main.go gossa.go
+	perl -pe 's/css_will_be_here/`cat src\/style.css`/ge' -i gossa.go
+	perl -pe 's/js_will_be_here/`cat src\/script.js`/ge' -i gossa.go
 
 run:
 	make build
 	./gossa fixture
 
 ci:
+	cd src
 	go fmt
 	go vet
 	timeout 5 make run &
