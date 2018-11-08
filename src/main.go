@@ -32,7 +32,7 @@ var skipHidden = flag.Bool("k", true, "skip hidden files")
 
 var initPath = ""
 var css = `css_will_be_here`  // js will be embedded here
-var jsTag = `js_will_be_here` // id.
+var jsTag = `js_will_be_here` // id. css
 var units = [8]string{"k", "M", "G", "T", "P", "E", "Z", "Y"}
 var favicon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAGFBMVEUAAACAgIDAwMAAAAD//////wAAAP+AgACyGYBKAAAAAXRSTlMAQObYZgAAAAFiS0dEBI9o2VEAAAAHdElNRQfiBhgXAzXpQrjsAAAArklEQVQoz3WQQQ7CIBBF4QbS4gEsYV8DHkAc3Rev0Buw8PoOQ9KZjPGlm76+hE+N+cdJvdughC+r+OqcAxCJB8CHE1vqBiASH6OHFycj2NEE50g8KdgxybBSMQI0oTYqKOim3EjcR9BNQGGnhSmJVh08PG45R+aScctUmS3jXFlEXdRroKHMnOgqzNxUQcNk8W7jd/CQ1IUcklSx6KImo45pRh1D4iPowiTBan74AnnnVMHA9EjhAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE4LTA2LTI0VDIzOjAzOjUzLTA0OjAwyUvdTwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOC0wNi0yNFQyMzowMzo1My0wNDowMLgWZfMAAAAASUVORK5CYII="
 
@@ -43,7 +43,7 @@ type rpcCall struct {
 
 func logVerb(s ...interface{}) {
 	if *verb {
-		log.Println(s)
+		log.Println(s...)
 	}
 }
 

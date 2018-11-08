@@ -19,10 +19,10 @@ ci:
 	cd src && sleep 1 && go test
 
 ci-watch:
-	ls main.go script.js main_test.go | entr -rc make ci
+	ls src/*  | entr -rc make ci
 
 watch:
-	ls main.go script.js | entr -rc make run
+	ls src/* | entr -rc make run
 
 build-all:
 	make embed
