@@ -1,6 +1,6 @@
 build:
 	make embed
-	go build gossa.go
+	CGO_ENABLED=0 go build gossa.go
 	rm gossa.go
 
 embed:
@@ -16,8 +16,8 @@ run:
 
 ci:
 	cd src && go vet && go fmt
-	timeout 5 make run &
-	cd src && sleep 1 && go test
+	timeout 10 make run &
+	cd src && sleep 5 && go test
 
 ci-watch:
 	ls src/*  | entr -rc make ci
