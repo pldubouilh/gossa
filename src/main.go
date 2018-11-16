@@ -17,28 +17,28 @@ import (
 	"strings"
 )
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
-var fs http.Handler
-
 var host = flag.String("h", "127.0.0.1", "host to listen to")
 var port = flag.String("p", "8001", "port to listen to")
 var verb = flag.Bool("verb", true, "verbosity")
 var skipHidden = flag.Bool("k", true, "skip hidden files")
 
 var initPath = ""
-var css = `css_will_be_here`  // js will be embedded here
-var jsTag = `js_will_be_here` // id. css
+var css = `css_will_be_here`                               // js will be embedded here
+var js = `js_will_be_here`                                 // id. css
+var favicon = "data:image/png;base64,favicon_will_be_here" // id. b64 favicon
 var units = [8]string{"k", "M", "G", "T", "P", "E", "Z", "Y"}
-var favicon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAGFBMVEUAAACAgIDAwMAAAAD//////wAAAP+AgACyGYBKAAAAAXRSTlMAQObYZgAAAAFiS0dEBI9o2VEAAAAHdElNRQfiBhgXAzXpQrjsAAAArklEQVQoz3WQQQ7CIBBF4QbS4gEsYV8DHkAc3Rev0Buw8PoOQ9KZjPGlm76+hE+N+cdJvdughC+r+OqcAxCJB8CHE1vqBiASH6OHFycj2NEE50g8KdgxybBSMQI0oTYqKOim3EjcR9BNQGGnhSmJVh08PG45R+aScctUmS3jXFlEXdRroKHMnOgqzNxUQcNk8W7jd/CQ1IUcklSx6KImo45pRh1D4iPowiTBan74AnnnVMHA9EjhAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE4LTA2LTI0VDIzOjAzOjUzLTA0OjAwyUvdTwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOC0wNi0yNFQyMzowMzo1My0wNDowMLgWZfMAAAAASUVORK5CYII="
+
+var fs http.Handler
 
 type rpcCall struct {
 	Call string   `json:"call"`
 	Args []string `json:"args"`
+}
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
 }
 
 func logVerb(s ...interface{}) {
@@ -56,11 +56,9 @@ func sizeToString(bytes float64) string {
 		bytes = bytes / 1024
 		u++
 		if bytes < 1024 {
-			break
+			return strconv.FormatFloat(bytes, 'f', 1, 64) + units[u]
 		}
 	}
-
-	return strconv.FormatFloat(bytes, 'f', 1, 64) + units[u]
 }
 
 func row(name string, href string, size float64, ext string) string {
@@ -87,7 +85,7 @@ func replyList(w http.ResponseWriter, path string) {
       <meta name="viewport" content="width=device-width">
 	  <title>` + html.EscapeString(path) + `</title>
 	  <link href="` + favicon + `" rel="icon" type="image/png"/>
-      <script>window.onload = function(){` + jsTag + `}</script>
+      <script>window.onload = function(){` + js + `}</script>
       <style type="text/css">` + css + `</style>
     </head>
 	<body>

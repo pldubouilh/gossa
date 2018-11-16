@@ -8,34 +8,30 @@ gossa
 🎶 A fast and simple webserver for your files. It's dependency-free and with under 250 lines for the server code, easily code-reviewable.
 
 ### features
-  * browse throughout files/directories
-  * upload files and folders with drag-and-drop
+  * browse through files/directories
+  * upload with drag-and-drop
   * create new folders
-  * move files to different directories with drag-and-drop and keyboard
-  * browse throughout pictures with a full-screen carousel
+  * move files with drag-and-drop and keyboard
+  * browse through pictures with a full-screen carousel
   * simple keyboard navigation/shortcuts
   * fast ; fills my 80MB/s AC wifi link
 
 ### run
 ```sh
-# run on test fixture folder
-make run
-
 # build
 make
-./gossa --help
 
-# run CI tests
-make ci
+# run
+./gossa -h 192.168.100.33 ~/storage
 ```
 
 ### keyboard shortcuts
   * Arrows/Enter  browse throughout the files/directories and pictures
-  * Ctrl/Meta + C  copy selected path to clipboard
+  * Ctrl/Meta + C  copy URL to clipboard
   * Ctrl/Meta + D  create a new directory
   * Ctrl/Meta + X  cut selected path
-  * Ctrl/Meta + V  paste paths previously selected with the above shortcut to directory
-  * \<any letter\>  search on first letters in filename
+  * Ctrl/Meta + V  paste previously selected paths to directory
+  * \<any letter\>  search
 
 ### built blobs
 built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases).
