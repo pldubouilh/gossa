@@ -1,25 +1,30 @@
+/* eslint-env browser */
+/* eslint-disable no-multi-str */
+
 function cancelDefault (e) {
   e.preventDefault()
   e.stopPropagation()
 }
 
-const checkDupes = test => allA.find(a => a.innerText.replace('/', '') === test)
-
+// RPC
 function rpcFs (call, args, cb) {
-  const decodedPath = decodeURI(window.location.pathname)
-  args = args.map(a => a.startsWith('/') ? a.slice(1) : a)
-  args = args.map(a => encodeURIComponent(decodedPath + a))
-
+  console.log('RPC', call, args)
   const xhr = new window.XMLHttpRequest()
-  xhr.open('POST', window.location.origin + '/rpc')
+  xhr.open('POST', location.origin + '/rpc')
   xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
-  xhr.send(JSON.stringify({call, args}))
+  xhr.send(JSON.stringify({ call, args }))
   xhr.onload = cb
 }
 
-const mkdirCall = (path, cb) => rpcFs('mkdirp', [path], cb)
+const prependPath = (a) => a.startsWith('/') ? a : decodeURI(location.pathname) + a
 
-function mkdir () {
+// RPC Handlers
+const mkdirCall = (path, cb) => rpcFs('mkdirp', [prependPath(path)], cb)
+
+const mvCall = (path1, path2, cb) => rpcFs('mv', [path1, path2], cb)
+
+// Mkdir switch
+window.mkdirBtn = function () {
   const folder = window.prompt('New folder name', '')
 
   if (!folder) {
@@ -28,29 +33,11 @@ function mkdir () {
     return window.alert('Name already already exists')
   }
 
-  mkdirCall(folder, () => browseTo(location.href))
+  mkdirCall(folder, refresh)
 }
 
 function warning (e) {
   return 'Leaving will interrupt transfer\nAre you sure you want to leave?'
-}
-
-function newBar (name) {
-  const id = Math.random().toString(36).substring(7)
-
-  document.getElementById('progressBars').innerHTML += '\
-    <div id="' + id + '" class="barBackground">\
-      <span> ' + name.split('/').pop() + ' <span>\
-      <div class="barForeground">1%</div>\
-    </div>'
-  return id
-}
-
-function updatePercent (id, percent) {
-  const el = document.getElementById(id).querySelectorAll('div.barForeground')[0]
-  const width = Math.floor(100 * percent).toString() + '%'
-  el.innerText = width
-  el.style.width = width
 }
 
 function shouldRefresh () {
@@ -60,31 +47,52 @@ function shouldRefresh () {
     console.log('Done uploading ' + totalDone + ' files')
     totalDone = 0
     totalUploads = 0
-    document.getElementById('progressBars').innerHTML = ''
-    browseTo(location.href)
+    totalUploadsSize = 0
+    totalUploadedSize = []
+    barDiv.style.display = 'none'
+    refresh()
   }
 }
 
+const checkDupes = test => allA.find(a => a.innerText.replace('/', '') === test)
+
+const barName = document.getElementById('dlBarName')
+
+const barPc = document.getElementById('dlBarPc')
+
+const barDiv = document.getElementById('progress')
+
+let totalDone = 0
+let totalUploads = 0
+let totalUploadsSize = 0
+let totalUploadedSize = []
+
+function updatePercent (ev) {
+  totalUploadedSize[ev.target.id] = ev.loaded
+  const ttlDone = totalUploadedSize.reduce((s, x) => s + x)
+  const pc = Math.floor(100 * ttlDone / totalUploadsSize) + '%'
+  barPc.innerText = pc
+  barPc.style.width = pc
+}
+
 function postFile (file, path) {
-  totalUploads += 1
+  path = decodeURI(location.pathname).slice(0, -1) + path
   window.onbeforeunload = warning
 
-  const xhr = new window.XMLHttpRequest()
-  path = decodeURI(location.pathname).slice(0, -1) + path
-
-  xhr.open('POST', window.location.origin + '/post')
-  xhr.setRequestHeader("gossa-path", encodeURIComponent(path))
-  xhr.upload.id = newBar(path)
+  barDiv.style.display = 'block'
+  totalUploads += 1
+  totalUploadsSize += file.size
+  barName.innerText = totalUploads > 1 ? totalUploads + ' files' : file.name
 
   const formData = new window.FormData()
   formData.append(file.name, file)
 
-  xhr.upload.addEventListener('progress', a => {
-    updatePercent(a.target.id, a.loaded / a.total)
-  })
-
+  const xhr = new window.XMLHttpRequest()
+  xhr.open('POST', location.origin + '/post')
+  xhr.setRequestHeader('gossa-path', encodeURIComponent(path))
   xhr.upload.addEventListener('load', shouldRefresh)
-
+  xhr.upload.addEventListener('progress', updatePercent)
+  xhr.upload.id = totalUploads
   xhr.send(formData)
 }
 
@@ -100,7 +108,9 @@ function parseDomItem (domFile, shoudCheckDupes) {
   if (domFile.isFile) {
     domFile.file(f => postFile(f, domFile.fullPath))
   } else {
-    mkdirCall(domFile.fullPath, () => parseDomFolder(domFile))
+    // remove absolute path
+    const f = domFile.fullPath.startsWith('/') ? domFile.fullPath.slice(1) : domFile.fullPath
+    mkdirCall(f, () => parseDomFolder(domFile))
   }
 }
 
@@ -114,13 +124,35 @@ function pushEntry (entry) {
   parseDomItem(entry, true)
 }
 
+// Move files and folders
+const isTextEvent = e => e.dataTransfer.items[0].type === 'text/plain'
+
+const isFolder = e => e && e.href && e.innerText.endsWith('/')
+
+const resetBackgroundLinks = () => { allA.forEach(a => { a.parentElement.style.backgroundColor = 'unset' }) }
+
+const setBackgroundLinks = t => { t.style.backgroundColor = 'rgba(123, 123, 123, 0.2)' }
+
+const getLink = e => e.target.parentElement.querySelectorAll('a.list-links')[0]
+
 const upGrid = document.getElementById('drop-grid')
 
 document.ondragenter = (e) => {
   if (isPicMode()) { return }
   cancelDefault(e)
-  e.dataTransfer.dropEffect = 'copy'
-  upGrid.style.display = 'flex'
+
+  resetBackgroundLinks()
+
+  if (isTextEvent(e) && (isFolder(e.target) || isFolder(e.target.firstChild))) {
+    const t = getLink(e)
+    if (!t) return
+    setBackgroundLinks(t.parentElement)
+  }
+
+  if (!isTextEvent(e)) {
+    upGrid.style.display = 'flex'
+    e.dataTransfer.dropEffect = 'copy'
+  }
 }
 
 upGrid.ondragleave = (e) => {
@@ -133,16 +165,26 @@ document.ondragover = (e) => {
   return false
 }
 
+// Handle drop - upload or move
 document.ondrop = (e) => {
   cancelDefault(e)
   upGrid.style.display = 'none'
+  resetBackgroundLinks()
 
-  Array.from(e.dataTransfer.items).forEach(pushEntry)
+  if (isTextEvent(e)) {
+    const t = e.target.classList.contains('fav') ? e.target : getLink(e)
+    if (!t || !t.innerText.endsWith('/')) return
+    e.dataTransfer.items[0].getAsString(s => {
+      const root = decodeURIComponent(s.replace(location.href, ''))
+      const dest = t.innerText + root
+      mvCall(prependPath(root), prependPath(dest), refresh)
+    })
+  } else {
+    Array.from(e.dataTransfer.items).forEach(pushEntry)
+  }
+
   return false
 }
-
-let totalUploads = 0
-let totalDone = 0
 
 const getArrowSelected = () => document.querySelectorAll('i.arrow-selected')[0]
 
@@ -164,12 +206,12 @@ function clearArrowSelected () {
 
 function restoreCursorPos () {
   clearArrowSelected()
-  const hrefSelected = window.localStorage.getItem('last-selected' + location.href)
+  const hrefSelected = localStorage.getItem('last-selected' + location.href)
   let a = allA.find(el => el.href === hrefSelected)
 
   if (!a) {
     if (allA[0].innerText === '../') {
-      a = allA[1]
+      a = allA[1] || allA[0]
     } else {
       a = allA[0]
     }
@@ -180,7 +222,7 @@ function restoreCursorPos () {
   scrollToArrow()
 }
 
-const storeLastArrowSrc = src => window.localStorage.setItem('last-selected' + location.href, src)
+const storeLastArrowSrc = src => localStorage.setItem('last-selected' + location.href, src)
 
 function moveArrow (down) {
   const all = Array.from(document.querySelectorAll('i.arrow-icon'))
@@ -210,12 +252,9 @@ function moveArrow (down) {
   }
 }
 
-function setCursorToClosest () {
-  const a = allA.find(el => el.innerText.toLocaleLowerCase().startsWith(path))
-  if (!a) { return }
-  storeLastArrowSrc(a.href)
-  restoreCursorPos()
-}
+const refresh = () => browseTo(location.href)
+
+const prevPage = () => browseTo(location.href + '../')
 
 window.onpopstate = prevPage
 
@@ -231,20 +270,10 @@ function browseTo (href) {
       document.head.querySelectorAll('title')[0].innerText = title
       document.body.querySelectorAll('h1')[0].innerText = '.' + title
       window.history.pushState({}, '', window.encodeURI(title))
-     }
+    }
 
     init()
   }))
-}
-
-function nextPage () {
-  const a = getASelected()
-  if (!a.href || !a.innerText.endsWith('/')) { return }
-  browseTo(a.href)
-}
-
-function prevPage () {
-  browseTo(window.location.href + "../")
 }
 
 function cpPath () {
@@ -275,8 +304,8 @@ function setImage (src) {
   storeLastArrowSrc(src)
 }
 
-function picsOn (ifImgSelected) {
-  const href = getASelected().href
+function picsOn (ifImgSelected, href) {
+  href = href || getASelected().href
 
   if (isPicMode()) {
     return false
@@ -317,8 +346,28 @@ function picsNav (down) {
   return true
 }
 
-let path = ''
-let clearPathToken = null
+let allA
+let typedPath = ''
+let typedToken = null
+
+function setCursorToClosestTyped () {
+  const a = allA.find(el => el.innerText.toLocaleLowerCase().startsWith(typedPath))
+  if (!a) { return }
+  storeLastArrowSrc(a.href)
+  restoreCursorPos()
+}
+
+let cuts = []
+
+function onPaste () {
+  if (!cuts.length) { return refresh() }
+  const root = cuts.pop()
+  const pwd = decodeURIComponent(location.pathname)
+  const isFolderDest = getASelected().innerText.endsWith('/')
+  const filename = root.split('/').pop()
+  const dest = isFolderDest ? pwd + getASelected().innerText : pwd
+  mvCall(root, dest + filename, onPaste)
+}
 
 // Kb handler
 document.body.addEventListener('keydown', e => {
@@ -332,9 +381,10 @@ document.body.addEventListener('keydown', e => {
       e.preventDefault()
       return picsNav(false) || moveArrow(false)
 
+    case 'Enter':
     case 'ArrowRight':
       e.preventDefault()
-      return picsOn(true) || picsNav(true) || nextPage()
+      return picsOn(true) || picsNav(true) || getASelected().click()
 
     case 'ArrowLeft':
       e.preventDefault()
@@ -345,10 +395,6 @@ document.body.addEventListener('keydown', e => {
         e.preventDefault()
         return picsToggle()
       }
-
-    case 'Enter':
-      e.preventDefault()
-      return picsOn(true) || picsNav(true) || getASelected().click()
   }
 
   // Ctrl keys
@@ -356,41 +402,50 @@ document.body.addEventListener('keydown', e => {
     switch (e.code) {
       case 'KeyD':
         e.preventDefault()
-        return isPicMode() || mkdir()
+        return isPicMode() || window.mkdirBtn()
 
       case 'KeyC':
         e.preventDefault()
         return isPicMode() || cpPath()
+
+      case 'KeyX':
+        e.preventDefault()
+        const x = decodeURIComponent(getASelected().href).replace(location.origin, '')
+        cuts.push(prependPath(x))
+        return false
+
+      case 'KeyV':
+        e.preventDefault()
+        return onPaste()
     }
   }
 
   // Any other key, for text search
   if (e.code.includes('Key')) {
-    path += e.code.replace('Key', '').toLocaleLowerCase()
-    window.clearTimeout(clearPathToken)
-    clearPathToken = setTimeout(() => { path = '' }, 1000)
-    setCursorToClosest()
+    typedPath += e.code.replace('Key', '').toLocaleLowerCase()
+    window.clearTimeout(typedToken)
+    typedToken = setTimeout(() => { typedPath = '' }, 1000)
+    setCursorToClosestTyped()
   }
 }, false)
 
-function partialBrowseOnClickFolders () {
-  allA.forEach(a => {
-    if (!a.innerText.endsWith('/')) { return }
-    a.addEventListener('click', e => {
-      e.preventDefault()
-      storeLastArrowSrc(e.target.href)
-      browseTo(e.target.href)
-    })
-  }, false)
+window.onClickLink = e => {
+  if (e.target.innerText.endsWith('/')) {
+    storeLastArrowSrc(e.target.href)
+    browseTo(e.target.href)
+    return false
+  } else if (picsOn(true, e.target.href)) {
+    return false
+  }
+  return true
 }
 
 function init () {
-  allA = Array.from(document.querySelectorAll('a'))
+  allA = Array.from(document.querySelectorAll('a.list-links'))
   allImgs = allA.map(el => el.href).filter(isPic)
-  document.getElementById('picsToggle').style.display = allImgs.length > 0 ? 'flex' : 'none'
+  document.getElementsByClassName('icon-large-images')[0].style.display = allImgs.length > 0 ? 'inline-block' : 'none'
 
   imgsIndex = 0
-  partialBrowseOnClickFolders()
   restoreCursorPos()
   console.log('Browsed to ' + location.href)
 }
@@ -399,4 +454,3 @@ init()
 
 window.picsToggle = picsToggle
 window.picsNav = () => picsNav(true)
-window.mkdir = mkdir

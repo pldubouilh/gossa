@@ -17,32 +17,33 @@ import (
 	"strings"
 )
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
-var fs http.Handler
-
 var host = flag.String("h", "127.0.0.1", "host to listen to")
 var port = flag.String("p", "8001", "port to listen to")
 var verb = flag.Bool("verb", true, "verbosity")
 var skipHidden = flag.Bool("k", true, "skip hidden files")
 
 var initPath = ""
-var css = `some_css`
-var jsTag = `some_js`
+var css = `css_will_be_here`                               // js will be embedded here
+var js = `js_will_be_here`                                 // id. css
+var favicon = "data:image/png;base64,favicon_will_be_here" // id. b64 favicon
 var units = [8]string{"k", "M", "G", "T", "P", "E", "Z", "Y"}
+
+var fs http.Handler
 
 type rpcCall struct {
 	Call string   `json:"call"`
 	Args []string `json:"args"`
 }
 
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
 func logVerb(s ...interface{}) {
 	if *verb {
-		log.Println(s)
+		log.Println(s...)
 	}
 }
 
@@ -55,11 +56,9 @@ func sizeToString(bytes float64) string {
 		bytes = bytes / 1024
 		u++
 		if bytes < 1024 {
-			break
+			return strconv.FormatFloat(bytes, 'f', 1, 64) + units[u]
 		}
 	}
-
-	return strconv.FormatFloat(bytes, 'f', 1, 64) + units[u]
 }
 
 func row(name string, href string, size float64, ext string) string {
@@ -71,7 +70,7 @@ func row(name string, href string, size float64, ext string) string {
 				<td><i class="btn icon icon-` + strings.ToLower(ext) + ` icon-blank"></i></td>
 				<td class="file-size"><code>` + sizeToString(size) + `</code></td>
 				<td class="arrow"><i class="arrow-icon"></i></td>
-				<td class="display-name"><a href="` + url.PathEscape(href) + `">` + name + `</a></td>
+				<td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="` + url.PathEscape(href) + `">` + name + `</a></td>
 			</tr>`
 }
 
@@ -84,17 +83,17 @@ func replyList(w http.ResponseWriter, path string) {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width">
-      <title>` + html.EscapeString(path) + `</title>
-      <script>window.onload = function(){` + jsTag + `}</script>
+	  <title>` + html.EscapeString(path) + `</title>
+	  <link href="` + favicon + `" rel="icon" type="image/png"/>
+      <script>window.onload = function(){` + js + `}</script>
       <style type="text/css">` + css + `</style>
     </head>
-    <body>
-      <div onclick="window.mkdir()" id="newFolder"></div>
-      <div onclick="window.picsToggle()" id="picsToggle"></div>
-      <div id="pics" style="display:none;"> <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img  onclick="window.picsNav()" id="picsHolder"/> <span id="picsLabel"></span> </div>
+	<body>
       <div id="drop-grid"> Drop here to upload </div>
-      <div id="progressBars"></div>
       <h1>.` + html.EscapeString(path) + `</h1>
+	  <div class="icHolder"><div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
+	  <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div></div>
+      <div id="pics" style="display:none;"> <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img  onclick="window.picsNav()" id="picsHolder"/> <span id="picsLabel"></span> </div>
 	  <table>`
 
 	_files, err := ioutil.ReadDir(initPath + path)
@@ -122,21 +121,14 @@ func replyList(w http.ResponseWriter, path string) {
 		}
 	}
 
-	var resp = head + dirs + files + `</table>
-          <br><address><a href="https://github.com/pldubouilh/gossa">Gossa  🎶</a></address>
-					</body></html>`
-
-	w.Write([]byte(resp))
+	w.Write([]byte(head + dirs + files + `</table>
+		<br><address><a href="https://github.com/pldubouilh/gossa">Gossa  🎶</a></address>
+		<div id="progress" style="display:none;"><span id="dlBarName"></span><div id="dlBarPc">1%</div></div>
+	</body></html>`))
 }
 
 func doContent(w http.ResponseWriter, r *http.Request) {
 	path := html.UnescapeString(r.URL.Path)
-
-	if strings.Contains(path, "/favicon.ico") {
-		w.Write([]byte(" "))
-		return
-	}
-
 	fullPath, errPath := checkPath(path)
 	stat, errStat := os.Stat(fullPath)
 
@@ -174,22 +166,28 @@ func upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func rpc(w http.ResponseWriter, r *http.Request) {
+	var err error
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
 	bodyString := string(bodyBytes)
 	var payload rpcCall
 	json.Unmarshal([]byte(bodyString), &payload)
 
-	unparsed, _ := url.PathUnescape(payload.Args[0])
-	p, err := checkPath(unparsed)
-	logVerb("RPC", err, unparsed)
-
-	if err != nil {
-		w.Write([]byte("error"))
-		return
-	} else if payload.Call == "mkdirp" {
-		os.MkdirAll(p, os.ModePerm)
+	for i := range payload.Args {
+		payload.Args[i], err = checkPath(payload.Args[i])
+		if err != nil {
+			logVerb("Cant read path", err, payload)
+			w.Write([]byte("error"))
+			return
+		}
 	}
 
+	if payload.Call == "mkdirp" {
+		err = os.MkdirAll(payload.Args[0], os.ModePerm)
+	} else if payload.Call == "mv" {
+		err = os.Rename(payload.Args[0], payload.Args[1])
+	}
+
+	logVerb("RPC", err, payload)
 	w.Write([]byte("ok"))
 }
 
@@ -198,7 +196,7 @@ func checkPath(p string) (string, error) {
 	fp, err := filepath.Abs(p)
 
 	if err != nil || !strings.HasPrefix(fp, initPath) {
-		return fp, errors.New("error")
+		return "", errors.New("error")
 	}
 
 	return fp, nil
@@ -216,20 +214,6 @@ func main() {
 	var err error
 	initPath, err = filepath.Abs(initPath)
 	check(err)
-
-	// Read CSS file if not embedded
-	if len(css) < 10 {
-		c, err := ioutil.ReadFile("./style.css")
-		check(err)
-		css = string(c)
-	}
-
-	// Read JS file if not embedded
-	if len(jsTag) < 10 {
-		j, err := ioutil.ReadFile("./script.js")
-		check(err)
-		jsTag = string(j)
-	}
 
 	var hostString = *host + ":" + *port
 	fmt.Println("Gossa startig on directory " + initPath)

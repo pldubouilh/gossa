@@ -1,5 +1,6 @@
 debug
 test
+gossa.go
 gossa
 gossa-linux
 gossa-linux-arm
@@ -7,6 +8,7 @@ gossa-linux-arm64
 gossa-mac
 gossa-windows.exe
 
+.vscode
 fixture/*
 fixture/*/*
 !fixture/compress
