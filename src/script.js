@@ -6,6 +6,59 @@ function cancelDefault (e) {
   e.stopPropagation()
 }
 
+function warning (e) {
+  return 'Leaving will interrupt transfer\nAre you sure you want to leave?'
+}
+
+const barName = document.getElementById('dlBarName')
+const barPc = document.getElementById('dlBarPc')
+const barDiv = document.getElementById('progress')
+const upGrid = document.getElementById('drop-grid')
+const pics = document.getElementById('pics')
+const picsHolder = document.getElementById('picsHolder')
+const picsLabel = document.getElementById('picsLabel')
+window.picsToggle = picsToggle
+
+let allA
+let imgsIndex
+let allImgs
+
+// Soft nav
+function browseTo (href) {
+  window.fetch(href).then(r => r.text().then(t => {
+    const parsed = new window.DOMParser().parseFromString(t, 'text/html')
+    const table = parsed.querySelectorAll('table')[0].innerHTML
+    document.body.querySelectorAll('table')[0].innerHTML = table
+
+    const title = parsed.head.querySelectorAll('title')[0].innerText
+    // check if is current path - if so skip following
+    if (document.head.querySelectorAll('title')[0].innerText !== title) {
+      document.head.querySelectorAll('title')[0].innerText = title
+      document.body.querySelectorAll('h1')[0].innerText = '.' + title
+      window.history.pushState({}, '', window.encodeURI(title))
+    }
+
+    init()
+  }))
+}
+
+window.onClickLink = e => {
+  if (e.target.innerText.endsWith('/')) {
+    storeLastArrowSrc(e.target.href)
+    browseTo(e.target.href)
+    return false
+  } else if (picsOn(true, e.target.href)) {
+    return false
+  }
+  return true
+}
+
+const refresh = () => browseTo(location.href)
+const prevPage = () => browseTo(location.href + '../')
+const getArrowSelected = () => document.querySelectorAll('i.arrow-selected')[0]
+const getASelected = () => !getArrowSelected() ? false : getArrowSelected().parentElement.parentElement.querySelectorAll('a')[0]
+window.onpopstate = prevPage
+
 // RPC
 function rpcFs (call, args, cb) {
   console.log('RPC', call, args)
@@ -18,27 +71,17 @@ function rpcFs (call, args, cb) {
 
 const prependPath = (a) => a.startsWith('/') ? a : decodeURI(location.pathname) + a
 
-// RPC Handlers
 const mkdirCall = (path, cb) => rpcFs('mkdirp', [prependPath(path)], cb)
 
 const mvCall = (path1, path2, cb) => rpcFs('mv', [path1, path2], cb)
 
-// Mkdir switch
-window.mkdirBtn = function () {
-  const folder = window.prompt('New folder name', '')
+// File upload
+let totalDone = 0
+let totalUploads = 0
+let totalUploadsSize = 0
+let totalUploadedSize = []
 
-  if (!folder) {
-    return
-  } else if (checkDupes(folder)) {
-    return window.alert('Name already already exists')
-  }
-
-  mkdirCall(folder, refresh)
-}
-
-function warning (e) {
-  return 'Leaving will interrupt transfer\nAre you sure you want to leave?'
-}
+const checkDupes = test => allA.find(a => a.innerText.replace('/', '') === test)
 
 function shouldRefresh () {
   totalDone += 1
@@ -53,19 +96,6 @@ function shouldRefresh () {
     refresh()
   }
 }
-
-const checkDupes = test => allA.find(a => a.innerText.replace('/', '') === test)
-
-const barName = document.getElementById('dlBarName')
-
-const barPc = document.getElementById('dlBarPc')
-
-const barDiv = document.getElementById('progress')
-
-let totalDone = 0
-let totalUploads = 0
-let totalUploadsSize = 0
-let totalUploadedSize = []
 
 function updatePercent (ev) {
   totalUploadedSize[ev.target.id] = ev.loaded
@@ -135,8 +165,6 @@ const setBackgroundLinks = t => { t.style.backgroundColor = 'rgba(123, 123, 123,
 
 const getLink = e => e.target.parentElement.querySelectorAll('a.list-links')[0]
 
-const upGrid = document.getElementById('drop-grid')
-
 document.ondragenter = (e) => {
   if (isPicMode()) { return }
   cancelDefault(e)
@@ -186,12 +214,21 @@ document.ondrop = (e) => {
   return false
 }
 
-const getArrowSelected = () => document.querySelectorAll('i.arrow-selected')[0]
+// Mkdir icon
+window.mkdirBtn = function () {
+  const folder = window.prompt('New folder name', '')
 
-function getASelected () {
-  const dest = getArrowSelected()
-  return !dest ? false : dest.parentElement.parentElement.querySelectorAll('a')[0]
+  if (!folder) {
+    return
+  } else if (checkDupes(folder)) {
+    return window.alert('Name already already exists')
+  }
+
+  mkdirCall(folder, refresh)
 }
+
+// Keyboard Arrow
+const storeLastArrowSrc = src => localStorage.setItem('last-selected' + location.href, src)
 
 function scrollToArrow () {
   const pos = getArrowSelected().getBoundingClientRect()
@@ -222,8 +259,6 @@ function restoreCursorPos () {
   scrollToArrow()
 }
 
-const storeLastArrowSrc = src => localStorage.setItem('last-selected' + location.href, src)
-
 function moveArrow (down) {
   const all = Array.from(document.querySelectorAll('i.arrow-icon'))
   let i = all.findIndex(el => el.classList.contains('arrow-selected'))
@@ -252,50 +287,11 @@ function moveArrow (down) {
   }
 }
 
-const refresh = () => browseTo(location.href)
-
-const prevPage = () => browseTo(location.href + '../')
-
-window.onpopstate = prevPage
-
-function browseTo (href) {
-  window.fetch(href).then(r => r.text().then(t => {
-    const parsed = new window.DOMParser().parseFromString(t, 'text/html')
-    const table = parsed.querySelectorAll('table')[0].innerHTML
-    document.body.querySelectorAll('table')[0].innerHTML = table
-
-    const title = parsed.head.querySelectorAll('title')[0].innerText
-    // check if is current path - if so skip following
-    if (document.head.querySelectorAll('title')[0].innerText !== title) {
-      document.head.querySelectorAll('title')[0].innerText = title
-      document.body.querySelectorAll('h1')[0].innerText = '.' + title
-      window.history.pushState({}, '', window.encodeURI(title))
-    }
-
-    init()
-  }))
-}
-
-function cpPath () {
-  var t = document.createElement('textarea')
-  t.value = getASelected().href
-  document.body.appendChild(t)
-  t.select()
-  document.execCommand('copy')
-  document.body.removeChild(t)
-}
-
-const pics = document.getElementById('pics')
-const picsHolder = document.getElementById('picsHolder')
-const picsLabel = document.getElementById('picsLabel')
-
+// Pictures carousel
 const picTypes = ['.jpg', '.jpeg', '.png', '.gif']
 const isPic = src => src && picTypes.find(type => src.toLocaleLowerCase().includes(type))
-
 const isPicMode = () => pics.style.display === 'flex'
-
-let imgsIndex
-let allImgs
+window.picsNav = () => picsNav(true)
 
 function setImage (src) {
   src = src || allImgs[imgsIndex]
@@ -346,19 +342,8 @@ function picsNav (down) {
   return true
 }
 
-let allA
-let typedPath = ''
-let typedToken = null
-
-function setCursorToClosestTyped () {
-  const a = allA.find(el => el.innerText.toLocaleLowerCase().startsWith(typedPath))
-  if (!a) { return }
-  storeLastArrowSrc(a.href)
-  restoreCursorPos()
-}
-
+// Paste handler
 let cuts = []
-
 function onPaste () {
   if (!cuts.length) { return refresh() }
   const root = cuts.pop()
@@ -370,6 +355,25 @@ function onPaste () {
 }
 
 // Kb handler
+let typedPath = ''
+let typedToken = null
+
+function cpPath () {
+  var t = document.createElement('textarea')
+  t.value = getASelected().href
+  document.body.appendChild(t)
+  t.select()
+  document.execCommand('copy')
+  document.body.removeChild(t)
+}
+
+function setCursorToClosestTyped () {
+  const a = allA.find(el => el.innerText.toLocaleLowerCase().startsWith(typedPath))
+  if (!a) { return }
+  storeLastArrowSrc(a.href)
+  restoreCursorPos()
+}
+
 document.body.addEventListener('keydown', e => {
   switch (e.code) {
     case 'Tab':
@@ -420,7 +424,7 @@ document.body.addEventListener('keydown', e => {
     }
   }
 
-  // Any other key, for text search
+  // text search
   if (e.code.includes('Key')) {
     typedPath += e.code.replace('Key', '').toLocaleLowerCase()
     window.clearTimeout(typedToken)
@@ -428,17 +432,6 @@ document.body.addEventListener('keydown', e => {
     setCursorToClosestTyped()
   }
 }, false)
-
-window.onClickLink = e => {
-  if (e.target.innerText.endsWith('/')) {
-    storeLastArrowSrc(e.target.href)
-    browseTo(e.target.href)
-    return false
-  } else if (picsOn(true, e.target.href)) {
-    return false
-  }
-  return true
-}
 
 function init () {
   allA = Array.from(document.querySelectorAll('a.list-links'))
@@ -449,8 +442,4 @@ function init () {
   restoreCursorPos()
   console.log('Browsed to ' + location.href)
 }
-
 init()
-
-window.picsToggle = picsToggle
-window.picsNav = () => picsNav(true)
