@@ -35,3 +35,15 @@ make
 
 ### built blobs
 built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases).
+
+### using with docker
+a pretty short docker file is provided
+
+```sh
+# build docker image
+make
+docker build -t gossa .
+
+# run
+sudo docker run -v ~/ToShare:/shared -p 8001:8001 gossa
+```
