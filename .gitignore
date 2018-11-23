@@ -2,7 +2,7 @@ debug
 test
 gossa.go
 gossa
-gossa-linux
+gossa-linux64
 gossa-linux-arm
 gossa-linux-arm64
 gossa-mac

@@ -67,7 +67,7 @@ func row(name string, href string, size float64, ext string) string {
 	}
 
 	return `<tr>
-				<td><i class="btn icon icon-` + strings.ToLower(ext) + ` icon-blank"></i></td>
+				<td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-` + strings.ToLower(ext) + ` icon-blank"></i></td>
 				<td class="file-size"><code>` + sizeToString(size) + `</code></td>
 				<td class="arrow"><i class="arrow-icon"></i></td>
 				<td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="` + url.PathEscape(href) + `">` + name + `</a></td>
@@ -185,6 +185,8 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 		err = os.MkdirAll(payload.Args[0], os.ModePerm)
 	} else if payload.Call == "mv" {
 		err = os.Rename(payload.Args[0], payload.Args[1])
+	} else if payload.Call == "rm" {
+		err = os.Remove(payload.Args[0])
 	}
 
 	logVerb("RPC", err, payload)
