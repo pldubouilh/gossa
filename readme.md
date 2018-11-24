@@ -5,16 +5,18 @@ gossa
 
 [![Build Status](https://travis-ci.org/pldubouilh/gossa.svg?branch=master)](https://travis-ci.org/pldubouilh/gossa)
 
-🎶 A fast and simple webserver for your files. It's dependency-free and with under 250 lines for the server code, easily code-reviewable.
+🎶 A fast and simple webserver for your files, that's dependency-free and with under 240 lines for the server code, easily code-reviewable.
 
 ### features
   * browse through files/directories
   * upload with drag-and-drop
-  * create new folders
-  * move files with drag-and-drop and keyboard
+  * move/rename/delete files
   * browse through pictures with a full-screen carousel
   * simple keyboard navigation/shortcuts
   * fast ; fills my 80MB/s AC wifi link
+
+### built blobs
+built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases).
 
 ### run
 ```sh
@@ -26,15 +28,26 @@ make
 ```
 
 ### keyboard shortcuts
-  * Arrows/Enter  browse throughout the files/directories and pictures
-  * Ctrl/Meta + C  copy URL to clipboard
-  * Ctrl/Meta + D  create a new directory
-  * Ctrl/Meta + X  cut selected path
-  * Ctrl/Meta + V  paste previously selected paths to directory
-  * \<any letter\>  search
+|shortcut | action|
+|-------------|-------------|
+|Arrows/Enter | browse through files/directories and pictures|
+|Ctrl/Meta + C | copy URL to clipboard|
+|Ctrl/Meta + E | rename file/folder|
+|Ctrl/Meta + Del | delete file/folder|
+|Ctrl/Meta + D | create a new directory|
+|Ctrl/Meta + X | cut selected path|
+|Ctrl/Meta + V | paste previously selected paths to directory|
+|\<any letter\> | search|
 
-### built blobs
-built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases).
+### ui shortcuts
+|shortcut | action|
+| ------------- |-------------|
+|click new folder icon | create new folder|
+|click images icon | toggle image carousel|
+|click file icon  | rename item|
+|double click file icon | delete item|
+|drag-and-drop item on UI | move item|
+|drag-and-drop external item | upload file/folders|
 
 ### using with docker
 a pretty short docker file is provided

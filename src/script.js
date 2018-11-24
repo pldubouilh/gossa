@@ -6,9 +6,8 @@ function cancelDefault (e) {
   e.stopPropagation()
 }
 
-function warning (e) {
-  return 'Leaving will interrupt transfer\n?'
-}
+const warningMsg = () => 'Leaving will interrupt transfer?\n'
+const rmMsg = () => !confirm('Remove file?\n')
 
 const barName = document.getElementById('dlBarName')
 const barPc = document.getElementById('dlBarPc')
@@ -17,16 +16,21 @@ const upGrid = document.getElementById('drop-grid')
 const pics = document.getElementById('pics')
 const picsHolder = document.getElementById('picsHolder')
 const picsLabel = document.getElementById('picsLabel')
-window.picsToggle = picsToggle
 
+// helpers
 let allA
 let imgsIndex
 let allImgs
+const decode = a => decodeURIComponent(a).replace(location.origin, '')
+const getArrowSelected = () => document.querySelectorAll('i.arrow-selected')[0]
+const getASelected = () => !getArrowSelected() ? false : getArrowSelected().parentElement.parentElement.querySelectorAll('a')[0]
+const prependPath = a => a.startsWith('/') ? a : decodeURI(location.pathname) + a
+const prevent = e => e.preventDefault()
 
 // Soft nav
 function browseTo (href) {
-  window.fetch(href).then(r => r.text().then(t => {
-    const parsed = new window.DOMParser().parseFromString(t, 'text/html')
+  fetch(href).then(r => r.text().then(t => {
+    const parsed = new DOMParser().parseFromString(t, 'text/html')
     const table = parsed.querySelectorAll('table')[0].innerHTML
     document.body.querySelectorAll('table')[0].innerHTML = table
 
@@ -35,7 +39,7 @@ function browseTo (href) {
     if (document.head.querySelectorAll('title')[0].innerText !== title) {
       document.head.querySelectorAll('title')[0].innerText = title
       document.body.querySelectorAll('h1')[0].innerText = '.' + title
-      window.history.pushState({}, '', window.encodeURI(title))
+      history.pushState({}, '', encodeURI(title))
     }
 
     init()
@@ -55,24 +59,20 @@ window.onClickLink = e => {
 
 const refresh = () => browseTo(location.href)
 const prevPage = () => browseTo(location.href + '../')
-const getArrowSelected = () => document.querySelectorAll('i.arrow-selected')[0]
-const getASelected = () => !getArrowSelected() ? false : getArrowSelected().parentElement.parentElement.querySelectorAll('a')[0]
 window.onpopstate = prevPage
 
 // RPC
 function rpcFs (call, args, cb) {
   console.log('RPC', call, args)
-  const xhr = new window.XMLHttpRequest()
+  const xhr = new XMLHttpRequest()
   xhr.open('POST', location.origin + '/rpc')
   xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
   xhr.send(JSON.stringify({ call, args }))
   xhr.onload = cb
 }
 
-const prependPath = (a) => a.startsWith('/') ? a : decodeURI(location.pathname) + a
-
 const mkdirCall = (path, cb) => rpcFs('mkdirp', [prependPath(path)], cb)
-
+const rmCall = (path1, cb) => rpcFs('rm', [prependPath(path1)], cb)
 const mvCall = (path1, path2, cb) => rpcFs('mv', [path1, path2], cb)
 
 // File upload
@@ -81,7 +81,8 @@ let totalUploads = 0
 let totalUploadsSize = 0
 let totalUploadedSize = []
 
-const checkDupes = test => allA.find(a => a.innerText.replace('/', '') === test)
+const dupe = test => allA.find(a => a.innerText.replace('/', '') === test)
+const isDupe = t => dupe(t) ? alert(t + ' already already exists') || true : false
 
 function shouldRefresh () {
   totalDone += 1
@@ -107,17 +108,17 @@ function updatePercent (ev) {
 
 function postFile (file, path) {
   path = decodeURI(location.pathname).slice(0, -1) + path
-  window.onbeforeunload = warning
+  window.onbeforeunload = warningMsg
 
   barDiv.style.display = 'block'
   totalUploads += 1
   totalUploadsSize += file.size
   barName.innerText = totalUploads > 1 ? totalUploads + ' files' : file.name
 
-  const formData = new window.FormData()
+  const formData = new FormData()
   formData.append(file.name, file)
 
-  const xhr = new window.XMLHttpRequest()
+  const xhr = new XMLHttpRequest()
   xhr.open('POST', location.origin + '/post')
   xhr.setRequestHeader('gossa-path', encodeURIComponent(path))
   xhr.upload.addEventListener('load', shouldRefresh)
@@ -126,15 +127,12 @@ function postFile (file, path) {
   xhr.send(formData)
 }
 
-const parseDomFolder = f => {
-  f.createReader().readEntries(e => e.forEach(i => parseDomItem(i)))
-}
+const parseDomFolder = f => f.createReader().readEntries(e => e.forEach(i => parseDomItem(i)))
 
 function parseDomItem (domFile, shoudCheckDupes) {
-  if (shoudCheckDupes && checkDupes(domFile.name)) {
-    return window.alert(domFile.name + ' already exists !')
+  if (shoudCheckDupes && isDupe(domFile.name)) {
+    return
   }
-
   if (domFile.isFile) {
     domFile.file(f => postFile(f, domFile.fullPath))
   } else {
@@ -146,7 +144,7 @@ function parseDomItem (domFile, shoudCheckDupes) {
 
 function pushEntry (entry) {
   if (!entry.webkitGetAsEntry && !entry.getAsEntry) {
-    return window.alert('Unsupported browser ! Please update to chrome/firefox.')
+    return alert('Unsupported browser ! Please update to chrome/firefox.')
   } else {
     entry = entry.webkitGetAsEntry() || entry.getAsEntry()
   }
@@ -165,7 +163,7 @@ const setBackgroundLinks = t => { t.style.backgroundColor = 'rgba(123, 123, 123,
 
 const getLink = e => e.target.parentElement.querySelectorAll('a.list-links')[0]
 
-document.ondragenter = (e) => {
+document.ondragenter = e => {
   if (isPicMode()) { return }
   cancelDefault(e)
 
@@ -183,18 +181,18 @@ document.ondragenter = (e) => {
   }
 }
 
-upGrid.ondragleave = (e) => {
+upGrid.ondragleave = e => {
   cancelDefault(e)
   upGrid.style.display = 'none'
 }
 
-document.ondragover = (e) => {
+document.ondragover = e => {
   cancelDefault(e)
   return false
 }
 
 // Handle drop - upload or move
-document.ondrop = (e) => {
+document.ondrop = e => {
   cancelDefault(e)
   upGrid.style.display = 'none'
   resetBackgroundLinks()
@@ -216,15 +214,34 @@ document.ondrop = (e) => {
 
 // Mkdir icon
 window.mkdirBtn = function () {
-  const folder = window.prompt('New folder name', '')
+  const folder = prompt('new folder name', '')
+  if (folder && !isDupe(folder)) {
+    mkdirCall(folder, refresh)
+  }
+}
 
-  if (!folder) {
+// Icon click handler
+const getBtnA = e => e.target.parentElement.parentElement.querySelector('a')
+
+window.rm = e => {
+  clearTimeout(window.clickToken)
+  const path = e.key ? getASelected().href : getBtnA(e).pathname
+  rmMsg() || rmCall(decode(path), refresh)
+}
+
+window.rename = (e, commit) => {
+  clearTimeout(window.clickToken)
+
+  if (!commit) {
+    window.clickToken = setTimeout(window.rename, 300, e, true)
     return
-  } else if (checkDupes(folder)) {
-    return window.alert('Name already already exists')
   }
 
-  mkdirCall(folder, refresh)
+  const orig = e.key ? getASelected().innerText : getBtnA(e).innerText
+  const chg = prompt('rename to', orig)
+  if (chg && !isDupe(chg)) {
+    mvCall(prependPath(orig), prependPath(chg), refresh)
+  }
 }
 
 // Keyboard Arrow
@@ -232,7 +249,9 @@ const storeLastArrowSrc = src => localStorage.setItem('last-selected' + location
 
 function scrollToArrow () {
   const pos = getArrowSelected().getBoundingClientRect()
-  window.scrollTo(0, pos.y)
+  if (pos.top < 0 || pos.bottom > window.innerHeight) {
+    setTimeout(scrollTo, 50, 0, pos.y)
+  }
 }
 
 function clearArrowSelected () {
@@ -277,13 +296,13 @@ function moveArrow (down) {
   const itemPos = all[i].getBoundingClientRect()
 
   if (i === 0) {
-    window.scrollTo(0, 0)
+    scrollTo(0, 0)
   } else if (i === all.length - 1) {
-    window.scrollTo(0, document.documentElement.scrollHeight)
+    scrollTo(0, document.documentElement.scrollHeight)
   } else if (itemPos.top < 0) {
-    window.scrollBy(0, -200)
+    scrollBy(0, -200)
   } else if (itemPos.bottom > window.innerHeight) {
-    window.scrollBy(0, 200)
+    scrollBy(0, 200)
   }
 }
 
@@ -293,41 +312,33 @@ const isPic = src => src && picTypes.find(type => src.toLocaleLowerCase().includ
 const isPicMode = () => pics.style.display === 'flex'
 window.picsNav = () => picsNav(true)
 
-function setImage (src) {
-  src = src || allImgs[imgsIndex]
-  picsLabel.innerText = src.split('/').pop()
+function setImage () {
+  const src = allImgs[imgsIndex]
   picsHolder.src = src
+  picsLabel.innerText = src.split('/').pop()
   storeLastArrowSrc(src)
+  restoreCursorPos()
 }
 
 function picsOn (ifImgSelected, href) {
   href = href || getASelected().href
 
-  if (isPicMode()) {
-    return false
-  } else if (ifImgSelected && !isPic(href)) {
+  if (isPicMode() || (ifImgSelected && !isPic(href))) {
     return false
   }
 
   if (isPic(href)) {
     imgsIndex = allImgs.findIndex(el => el.includes(href))
-    setImage()
-  } else {
-    setImage(picsHolder.src)
   }
 
+  setImage()
   pics.style.display = 'flex'
   return true
 }
 
-function picsToggle () {
-  if (!isPicMode()) {
-    picsOn()
-  } else {
-    pics.style.display = 'none'
-    restoreCursorPos()
-  }
-}
+const picsOff = () => { pics.style.display = 'none' }
+
+window.picsToggle = () => isPicMode() ? picsOff() : picsOn()
 
 function picsNav (down) {
   if (!isPicMode()) { return false }
@@ -378,56 +389,50 @@ document.body.addEventListener('keydown', e => {
   switch (e.code) {
     case 'Tab':
     case 'ArrowDown':
-      e.preventDefault()
-      return picsNav(true) || moveArrow(true)
+      return prevent(e) || picsNav(true) || moveArrow(true)
 
     case 'ArrowUp':
-      e.preventDefault()
-      return picsNav(false) || moveArrow(false)
+      return prevent(e) || picsNav(false) || moveArrow(false)
 
     case 'Enter':
     case 'ArrowRight':
-      e.preventDefault()
-      return picsOn(true) || picsNav(true) || getASelected().click()
+      return prevent(e) || picsOn(true) || picsNav(true) || getASelected().click()
 
     case 'ArrowLeft':
-      e.preventDefault()
-      return picsNav(false) || prevPage()
+      return prevent(e) || picsNav(false) || prevPage()
 
     case 'Escape':
-      if (isPicMode()) {
-        e.preventDefault()
-        return picsToggle()
-      }
+      return prevent(e) || picsOff()
   }
 
   // Ctrl keys
   if (e.ctrlKey || e.metaKey) {
     switch (e.code) {
-      case 'KeyD':
-        e.preventDefault()
-        return isPicMode() || window.mkdirBtn()
-
       case 'KeyC':
-        e.preventDefault()
-        return isPicMode() || cpPath()
+        return prevent(e) || isPicMode() || cpPath()
 
       case 'KeyX':
-        e.preventDefault()
-        const x = decodeURIComponent(getASelected().href).replace(location.origin, '')
-        cuts.push(prependPath(x))
-        return false
+        cuts.push(prependPath(decode(getASelected().href)))
+        return prevent(e) || false
 
       case 'KeyV':
-        e.preventDefault()
-        return onPaste()
+        return prevent(e) || onPaste()
+
+      case 'Backspace':
+        return prevent(e) || isPicMode() || window.rm(e)
+
+      case 'KeyE':
+        return prevent(e) || isPicMode() || window.rename(e)
+
+      case 'KeyD':
+        return prevent(e) || isPicMode() || window.mkdirBtn()
     }
   }
 
   // text search
   if (e.code.includes('Key')) {
     typedPath += e.code.replace('Key', '').toLocaleLowerCase()
-    window.clearTimeout(typedToken)
+    clearTimeout(typedToken)
     typedToken = setTimeout(() => { typedPath = '' }, 1000)
     setCursorToClosestTyped()
   }
