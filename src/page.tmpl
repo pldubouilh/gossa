@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>{{.Title}}</title>
+    <link href="data:image/png;base64,favicon_will_be_here" rel="icon" type="image/png" />
+    <script>window.onload = function () { js_will_be_here }</script>
+    <style type="text/css">css_will_be_here</style>
+</head>
+
+<body>
+    <div id="drop-grid"> Drop here to upload </div>
+
+    <h1>.{{.Title}}</h1>
+
+    <div class="icHolder">
+        <div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
+        <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>
+    </div>
+
+    <div id="pics" style="display:none;">
+        <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img onclick="window.picsNav()" id="picsHolder" />
+        <span id="picsLabel"></span>
+    </div>
+
+    <table>
+    {{range .RowsFolders}}
+        <tr>
+            <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
+            <td class="file-size"><code>{{.Size}}</code></td>
+            <td class="arrow"><i class="arrow-icon"></i></td>
+            <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
+        </tr>
+    {{end}}
+    {{range .RowsFiles}}
+        <tr>
+            <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
+            <td class="file-size"><code>{{.Size}}</code></td>
+            <td class="arrow"><i class="arrow-icon"></i></td>
+            <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
+        </tr>
+    {{end}}
+    </table>
+
+    <div id="progress" style="display:none;">
+        <span id="dlBarName"></span>
+        <div id="dlBarPc">1%</div>
+    </div>
+</body>
+</html>

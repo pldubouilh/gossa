@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"html"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,14 +22,23 @@ var host = flag.String("h", "127.0.0.1", "host to listen to")
 var port = flag.String("p", "8001", "port to listen to")
 var verb = flag.Bool("verb", true, "verbosity")
 var skipHidden = flag.Bool("k", true, "skip hidden files")
-
 var initPath = ""
-var css = `css_will_be_here`                               // js will be embedded here
-var js = `js_will_be_here`                                 // id. css
-var favicon = "data:image/png;base64,favicon_will_be_here" // id. b64 favicon
-var units = [8]string{"k", "M", "G", "T", "P", "E", "Z", "Y"}
 
 var fs http.Handler
+var page, _ = template.New("pageTemplate").Parse(`template_will_be_here`)
+
+type rowTemplate struct {
+	Name string
+	Href template.HTML
+	Size string
+	Ext  string
+}
+
+type pageTemplate struct {
+	Title       template.HTML
+	RowsFiles   []rowTemplate
+	RowsFolders []rowTemplate
+}
 
 type rpcCall struct {
 	Call string   `json:"call"`
@@ -47,31 +57,17 @@ func logVerb(s ...interface{}) {
 	}
 }
 
-func sizeToString(bytes float64) string {
-	if bytes == 0 {
-		return "0"
-	}
-	var u = -1
+func sizeToString(bytes int64) string {
+	units := [9]string{"B", "k", "M", "G", "T", "P", "E", "Z", "Y"}
+	b := float64(bytes)
+	u := 0
 	for {
-		bytes = bytes / 1024
-		u++
-		if bytes < 1024 {
-			return strconv.FormatFloat(bytes, 'f', 1, 64) + units[u]
+		if b < 1024 {
+			return strconv.FormatFloat(b, 'f', 1, 64) + units[u]
 		}
+		b = b / 1024
+		u++
 	}
-}
-
-func row(name string, href string, size float64, ext string) string {
-	if strings.HasPrefix(href, "/") {
-		href = strings.Replace(href, "/", "", 1)
-	}
-
-	return `<tr>
-				<td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-` + strings.ToLower(ext) + ` icon-blank"></i></td>
-				<td class="file-size"><code>` + sizeToString(size) + `</code></td>
-				<td class="arrow"><i class="arrow-icon"></i></td>
-				<td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="` + url.PathEscape(href) + `">` + name + `</a></td>
-			</tr>`
 }
 
 func replyList(w http.ResponseWriter, path string) {
@@ -79,52 +75,34 @@ func replyList(w http.ResponseWriter, path string) {
 		path += "/"
 	}
 
-	var head = `<!doctype html><html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width">
-	  <title>` + html.EscapeString(path) + `</title>
-	  <link href="` + favicon + `" rel="icon" type="image/png"/>
-      <script>window.onload = function(){` + js + `}</script>
-      <style type="text/css">` + css + `</style>
-    </head>
-	<body>
-      <div id="drop-grid"> Drop here to upload </div>
-      <h1>.` + html.EscapeString(path) + `</h1>
-	  <div class="icHolder"><div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
-	  <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div></div>
-      <div id="pics" style="display:none;"> <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img  onclick="window.picsNav()" id="picsHolder"/> <span id="picsLabel"></span> </div>
-	  <table>`
-
 	_files, err := ioutil.ReadDir(initPath + path)
 	check(err)
 
+	p := pageTemplate{}
 	if path != "/" {
-		head += row("../", "../", 0, "folder")
+		p.RowsFolders = append(p.RowsFolders, rowTemplate{"../", "../", "", "folder"})
 	}
 
-	var dirs = ""
-	var files = ""
-
 	for _, el := range _files {
-		var name = el.Name()
+		name := el.Name()
+		href := url.PathEscape(name)
 		if *skipHidden && strings.HasPrefix(name, ".") {
 			continue
 		}
-
+		if el.IsDir() && strings.HasPrefix(href, "/") {
+			href = strings.Replace(href, "/", "", 1)
+		}
 		if el.IsDir() {
-			dirs += row(name+"/", name, 0, "folder")
+			p.RowsFolders = append(p.RowsFolders, rowTemplate{name + "/", template.HTML(href), "", "folder"})
 		} else {
-			var sl = strings.Split(name, ".")
-			var ext = sl[len(sl)-1]
-			files += row(name, name, float64(el.Size()), ext)
+			sl := strings.Split(name, ".")
+			ext := strings.ToLower(sl[len(sl)-1])
+			p.RowsFiles = append(p.RowsFiles, rowTemplate{name, template.HTML(href), sizeToString(el.Size()), ext})
 		}
 	}
 
-	w.Write([]byte(head + dirs + files + `</table>
-		<br><address><a href="https://github.com/pldubouilh/gossa">Gossa  🎶</a></address>
-		<div id="progress" style="display:none;"><span id="dlBarName"></span><div id="dlBarPc">1%</div></div>
-	</body></html>`))
+	p.Title = template.HTML(html.EscapeString(path))
+	page.Execute(w, p)
 }
 
 func doContent(w http.ResponseWriter, r *http.Request) {
@@ -206,7 +184,6 @@ func checkPath(p string) (string, error) {
 
 func main() {
 	flag.Parse()
-
 	if len(flag.Args()) == 0 {
 		initPath = "."
 	} else {
@@ -217,11 +194,11 @@ func main() {
 	initPath, err = filepath.Abs(initPath)
 	check(err)
 
-	var hostString = *host + ":" + *port
+	hostString := *host + ":" + *port
 	fmt.Println("Gossa startig on directory " + initPath)
 	fmt.Println("Listening on http://" + hostString)
 
-	var root = http.Dir(initPath)
+	root := http.Dir(initPath)
 	fs = http.StripPrefix("/", http.FileServer(root))
 
 	http.HandleFunc("/rpc", rpc)
