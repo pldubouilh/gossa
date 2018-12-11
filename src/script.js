@@ -163,6 +163,11 @@ const setBackgroundLinks = t => { t.style.backgroundColor = 'rgba(123, 123, 123,
 
 const getLink = e => e.target.parentElement.querySelectorAll('a.list-links')[0]
 
+upGrid.ondragleave = e => {
+  cancelDefault(e)
+  upGrid.style.display = 'none'
+}
+
 document.ondragenter = e => {
   if (isPicMode()) { return }
   cancelDefault(e)
@@ -181,10 +186,7 @@ document.ondragenter = e => {
   }
 }
 
-upGrid.ondragleave = e => {
-  cancelDefault(e)
-  upGrid.style.display = 'none'
-}
+document.ondragend = e => resetBackgroundLinks()
 
 document.ondragover = e => {
   cancelDefault(e)
@@ -402,7 +404,7 @@ document.body.addEventListener('keydown', e => {
       return prevent(e) || picsNav(false) || prevPage()
 
     case 'Escape':
-      return prevent(e) || picsOff()
+      return prevent(e) || resetBackgroundLinks() || picsOff()
   }
 
   // Ctrl keys
@@ -426,11 +428,14 @@ document.body.addEventListener('keydown', e => {
 
       case 'KeyD':
         return prevent(e) || isPicMode() || window.mkdirBtn()
+
+      case 'KeyB':
+        return prevent(e) || toggleTheme()
     }
   }
 
   // text search
-  if (e.code.includes('Key')) {
+  if (e.code.includes('Key') && !e.ctrlKey && !e.metaKey) {
     typedPath += e.code.replace('Key', '').toLocaleLowerCase()
     clearTimeout(typedToken)
     typedToken = setTimeout(() => { typedPath = '' }, 1000)
