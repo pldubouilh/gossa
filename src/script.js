@@ -163,6 +163,11 @@ const setBackgroundLinks = t => { t.style.backgroundColor = 'rgba(123, 123, 123,
 
 const getLink = e => e.target.parentElement.querySelectorAll('a.list-links')[0]
 
+upGrid.ondragleave = e => {
+  cancelDefault(e)
+  upGrid.style.display = 'none'
+}
+
 document.ondragenter = e => {
   if (isPicMode()) { return }
   cancelDefault(e)
@@ -181,10 +186,7 @@ document.ondragenter = e => {
   }
 }
 
-upGrid.ondragleave = e => {
-  cancelDefault(e)
-  upGrid.style.display = 'none'
-}
+document.ondragend = e => resetBackgroundLinks()
 
 document.ondragover = e => {
   cancelDefault(e)
@@ -365,6 +367,16 @@ function onPaste () {
   mvCall(root, dest + filename, onPaste)
 }
 
+// dark mode
+const darkMode = 'html, a { background-color: #2d3436; color: #dfe6e9; } .arrow, .icon-large-images { filter: invert(100%) !important; }'
+const extraCss = document.createElement('style')
+document.body.appendChild(extraCss);
+
+const currentMode = () => localStorage.getItem('colorMode')
+const setMode = () => { extraCss.innerHTML = currentMode() === 'dark' ? darkMode : '' }
+const toggleBWMode = () => localStorage.setItem('colorMode', currentMode() === 'dark' ? 'white' : 'dark') || setMode()
+setMode()
+
 // Kb handler
 let typedPath = ''
 let typedToken = null
@@ -402,7 +414,7 @@ document.body.addEventListener('keydown', e => {
       return prevent(e) || picsNav(false) || prevPage()
 
     case 'Escape':
-      return prevent(e) || picsOff()
+      return prevent(e) || resetBackgroundLinks() || picsOff()
   }
 
   // Ctrl keys
@@ -426,6 +438,9 @@ document.body.addEventListener('keydown', e => {
 
       case 'KeyD':
         return prevent(e) || isPicMode() || window.mkdirBtn()
+
+      case 'KeyB':
+        return prevent(e) || toggleBWMode()
     }
   }
 
