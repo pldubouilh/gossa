@@ -29,7 +29,7 @@ const prevent = e => e.preventDefault()
 
 // Soft nav
 function browseTo (href) {
-  fetch(href).then(r => r.text().then(t => {
+  fetch(href, { credentials: 'include' }).then(r => r.text().then(t => {
     const parsed = new DOMParser().parseFromString(t, 'text/html')
     const table = parsed.querySelectorAll('table')[0].innerHTML
     document.body.querySelectorAll('table')[0].innerHTML = table
