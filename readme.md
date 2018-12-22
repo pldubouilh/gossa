@@ -5,13 +5,14 @@ gossa
 
 [![Build Status](https://travis-ci.org/pldubouilh/gossa.svg?branch=master)](https://travis-ci.org/pldubouilh/gossa)
 
-🎶 A fast and simple webserver for your files, that's dependency-free and with under 240 lines for the server code, easily code-reviewable.
+🎶 A fast and simple webserver for your files, that's dependency-free and with under 210 lines for the server code, easily code-reviewable.
 
 ### features
   * browse through files/directories
   * upload with drag-and-drop
   * move/rename/delete files
   * browse through pictures with a full-screen carousel
+  * stream videos directly from the browser
   * simple keyboard navigation/shortcuts
   * fast ; fills my 80MB/s AC wifi link
 
@@ -32,12 +33,13 @@ make
 |-------------|-------------|
 |Arrows/Enter | browse through files/directories and pictures|
 |Ctrl/Meta + C | copy URL to clipboard|
+|Ctrl/Meta + B | toggle theme (dark/clear)|
+|\<any letter\> | search|
 |Ctrl/Meta + E | rename file/folder|
 |Ctrl/Meta + Del | delete file/folder|
 |Ctrl/Meta + D | create a new directory|
 |Ctrl/Meta + X | cut selected path|
 |Ctrl/Meta + V | paste previously selected paths to directory|
-|\<any letter\> | search|
 
 ### ui shortcuts
 |shortcut | action|
