@@ -27,7 +27,7 @@ watch:
 
 build-all:
 	make embed
-	env GOOS=linux GOARCH=amd64 go build gossa.go
+	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build gossa.go
 	mv gossa gossa-linux64
 	env GOOS=linux GOARCH=arm go build gossa.go
 	mv gossa gossa-linux-arm
