@@ -1,31 +1,28 @@
-build:
+run:
 	make embed
+	go vet && go fmt
 	CGO_ENABLED=0 go build gossa.go
 	rm gossa.go
+	./gossa fixture
+
+watch:
+	ls src/* | entr -rc make run
 
 embed:
 	echo "embedding css and js into binary"
 	cp src/main.go gossa.go
-	perl -pe 's/template_will_be_here/`cat src\/page.tmpl`/ge' -i gossa.go
+	perl -pe 's/template_will_be_here/`cat src\/template.go`/ge' -i gossa.go
 	perl -pe 's/css_will_be_here/`cat src\/style.css`/ge' -i gossa.go
 	perl -pe 's/theme_will_be_here/`cat src\/theme.css`/ge' -i gossa.go
 	perl -pe 's/js_will_be_here/`cat src\/script.js`/ge' -i gossa.go
 	perl -pe 's/favicon_will_be_here/`base64 -w0 src\/favicon.png`/ge' -i gossa.go
 
-run:
-	make build
-	./gossa fixture
-
 ci:
-	cd src && go vet && go fmt
 	timeout 10 make run &
-	cd src && sleep 5 && go test
+	cp src/gossa_test.go . && sleep 5 && go test; rm gossa gossa_test.go
 
 ci-watch:
 	ls src/* | entr -rc make ci
-
-watch:
-	ls src/* | entr -rc make run
 
 build-all:
 	make embed
