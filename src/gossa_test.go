@@ -77,7 +77,7 @@ func testDefaults(t *testing.T, url string) string {
 		t.Fatal("error 中文 folder")
 	}
 
-	if !strings.Contains(bodyStr, `<tr> <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-types icon-blank"></i></td> <td class="file-size"><code>0.2k</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="custom_mime_type.types">custom_mime_type.types</a></td> </tr>`) {
+	if !strings.Contains(bodyStr, `<tr> <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-types icon-blank"></i></td> <td class="file-size"><code>211.0B</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="custom_mime_type.types">custom_mime_type.types</a></td> </tr>`) {
 		t.Fatal("error row custom_mime_type")
 	}
 
@@ -116,7 +116,7 @@ func TestGetFolder(t *testing.T) {
 	}
 
 	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if !strings.Contains(bodyStr, `<tr> <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code>0</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="AAA">AAA/</a></td> </tr>`) {
+	if !strings.Contains(bodyStr, `<tr> <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="AAA">AAA/</a></td> </tr>`) {
 		t.Fatal("error new folder created")
 	}
 
@@ -140,7 +140,7 @@ func TestGetFolder(t *testing.T) {
 	}
 
 	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if strings.Contains(bodyStr, `<tr> <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code>0</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="AAA">AAA/</a></td> </tr>`) {
+	if strings.Contains(bodyStr, `<tr> <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="AAA">AAA/</a></td> </tr>`) {
 		t.Fatal("error folder moved")
 	}
 
@@ -157,7 +157,7 @@ func TestGetFolder(t *testing.T) {
 	}
 
 	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if !strings.Contains(bodyStr, `<tr> <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-하 하 icon-blank"></i></td> <td class="file-size"><code>0.0k</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1">하 하</a></td> </tr>`) {
+	if !strings.Contains(bodyStr, `<tr> <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-하 하 icon-blank"></i></td> <td class="file-size"><code>9.0B</code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1">하 하</a></td> </tr>`) {
 		t.Fatal("error checking new file row")
 	}
 

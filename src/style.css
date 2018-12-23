@@ -1,3 +1,9 @@
+a {
+  text-decoration: none;
+  background-color: transparent !important;
+  /* border-bottom: .01em solid #dfe6e9; */
+}
+
 .icon {
   display: block;
   height: 16px;
@@ -75,7 +81,6 @@ h1 {
 }
 
 #progress {
-  background-color: white;
   width: 99%;
   left: 0.5%;
   right: 0.5%;
@@ -83,7 +88,6 @@ h1 {
   bottom: 0px;
   padding-bottom: 10px;
   max-height: 50%;
-  overflow-y: scroll;
   overflow-x: hidden;
 }
 
@@ -118,10 +122,9 @@ h1 {
   text-align: center;
   font-size: 4em;
   font-family: Helvetica;
-  background-color: white;
   color: green;
   opacity: 0.8;
-  backdrop-filter: grayscale(100%);
+  background-color: rgba(123, 123, 123, 0.2)
 }
 
 #pics {
