@@ -52,13 +52,14 @@ make
 |drag-and-drop external item | upload file/folders|
 
 ### using with docker
-a pretty short docker file is provided
+multiple dockerfiles are provided in the `docker` folder. to simply get started just have a look below
+
 
 ```sh
-# build docker image
-make
-docker build -t gossa .
+# build
+cd docker
+docker build -t gossa -f download .
 
 # run
-sudo docker run -v ~/ToShare:/shared -p 8001:8001 gossa
+sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 gossa
 ```
