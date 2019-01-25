@@ -133,22 +133,11 @@ h1 {
   position: fixed;
   background-color: #000;
   top: 0px;
-  bottom: 25px;
+  bottom: 0px;
   left: 0px;
   right: 0px;
   overflow: hidden;
   z-index: 99;
-}
-
-#picsLabel {
-  font-size: 25px;
-  color: darkgray;
-  position: fixed;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-  background-color: black;
-  font-family: helvetica;
 }
 
 #picsHolder {

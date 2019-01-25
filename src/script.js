@@ -15,7 +15,6 @@ const barDiv = document.getElementById('progress')
 const upGrid = document.getElementById('drop-grid')
 const pics = document.getElementById('pics')
 const picsHolder = document.getElementById('picsHolder')
-const picsLabel = document.getElementById('picsLabel')
 
 // helpers
 let allA
@@ -58,7 +57,7 @@ window.onClickLink = e => {
 }
 
 const refresh = () => browseTo(location.href)
-const prevPage = () => browseTo(location.href + '../')
+const prevPage = () => picsOff() || browseTo(location.href + '../')
 window.onpopstate = prevPage
 
 // RPC
@@ -314,12 +313,16 @@ const isPic = src => src && picTypes.find(type => src.toLocaleLowerCase().includ
 const isPicMode = () => pics.style.display === 'flex'
 window.picsNav = () => picsNav(true)
 
-function setImage () {
+function setImage (first) {
   const src = allImgs[imgsIndex]
   picsHolder.src = src
-  picsLabel.innerText = src.split('/').pop()
   storeLastArrowSrc(src)
   restoreCursorPos()
+  if (first) {
+    history.pushState({}, '', encodeURI(src.split('/').pop()))
+  } else {
+    history.replaceState({}, '', encodeURI(src.split('/').pop()))
+  }
 }
 
 function picsOn (ifImgSelected, href) {
@@ -333,12 +336,18 @@ function picsOn (ifImgSelected, href) {
     imgsIndex = allImgs.findIndex(el => el.includes(href))
   }
 
-  setImage()
+  setImage(true)
   pics.style.display = 'flex'
   return true
 }
 
-const picsOff = () => { pics.style.display = 'none' }
+function picsOff (skip) {
+  if (!isPicMode()) { return }
+
+  history.replaceState({}, '', encodeURI(location.href.split('/').slice(0, -1).join('/') + '/'))
+  pics.style.display = 'none'
+  return true
+}
 
 window.picsToggle = () => isPicMode() ? picsOff() : picsOn()
 

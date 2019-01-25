@@ -29,7 +29,6 @@
 
     <div id="pics" style="display:none;">
         <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img onclick="window.picsNav()" id="picsHolder" />
-        <span id="picsLabel"></span>
     </div>
 
     <table>
