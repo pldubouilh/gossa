@@ -51,7 +51,7 @@ function browseTo (href) {
     if (document.head.querySelectorAll('title')[0].innerText !== title) {
       document.head.querySelectorAll('title')[0].innerText = title
       document.body.querySelectorAll('h1')[0].innerText = '.' + title
-      history.pushState({}, '', encodeURI(title))
+      history.replaceState({}, '', encodeURI(title))
     }
 
     init()
@@ -70,8 +70,8 @@ window.onClickLink = e => {
 }
 
 const refresh = () => browseTo(location.href) || okBageFlicker()
-const prevPage = () => picsOff() || browseTo(location.href + '../')
-window.onpopstate = prevPage
+const prevPage = (url) => picsOff() || browseTo(url || (location.href + '../'))
+window.onpopstate = () => prevPage(location.href)
 
 // RPC
 function rpcFs (call, args, cb) {
@@ -326,16 +326,12 @@ const isPic = src => src && picTypes.find(type => src.toLocaleLowerCase().includ
 const isPicMode = () => pics.style.display === 'flex'
 window.picsNav = () => picsNav(true)
 
-function setImage (first) {
+function setImage () {
   const src = allImgs[imgsIndex]
   picsHolder.src = src
   storeLastArrowSrc(src)
   restoreCursorPos()
-  if (first) {
-    history.pushState({}, '', encodeURI(src.split('/').pop()))
-  } else {
-    history.replaceState({}, '', encodeURI(src.split('/').pop()))
-  }
+  history.replaceState({}, '', encodeURI(src.split('/').pop()))
 }
 
 function picsOn (ifImgSelected, href) {
@@ -349,7 +345,7 @@ function picsOn (ifImgSelected, href) {
     imgsIndex = allImgs.findIndex(el => el.includes(href))
   }
 
-  setImage(true)
+  setImage()
   pics.style.display = 'flex'
   return true
 }
