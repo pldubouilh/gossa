@@ -19,10 +19,11 @@
 
 <body>
     <div id="drop-grid"> Drop here to upload </div>
+    <input type="file" id="clickupload" style="display:none"/>
 
     <h1>.{{.Title}}</h1>
 
-    <div class="icHolder">
+    <div id="icHolder">
         <div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
         <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>
     </div>

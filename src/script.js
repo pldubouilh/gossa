@@ -15,6 +15,8 @@ const barDiv = document.getElementById('progress')
 const upGrid = document.getElementById('drop-grid')
 const pics = document.getElementById('pics')
 const picsHolder = document.getElementById('picsHolder')
+const icHolder = document.getElementById('icHolder')
+const manualUpload = document.getElementById('clickupload')
 
 // helpers
 let allA
@@ -25,6 +27,14 @@ const getArrowSelected = () => document.querySelectorAll('i.arrow-selected')[0]
 const getASelected = () => !getArrowSelected() ? false : getArrowSelected().parentElement.parentElement.querySelectorAll('a')[0]
 const prependPath = a => a.startsWith('/') ? a : decodeURI(location.pathname) + a
 const prevent = e => e.preventDefault()
+
+// Add upload icon on phones
+if (typeof window.orientation !== 'undefined') {
+  icHolder.innerHTML = '<div onclick="document.getElementById(\'clickupload\').click()" class="ic icon-large-upload"></div>' + icHolder.innerHTML
+}
+
+// Manual upload
+manualUpload.addEventListener('change', () => Array.from(manualUpload.files).forEach(f => postFile(f, '/' + f.name)), false)
 
 // Soft nav
 function browseTo (href) {
@@ -439,7 +449,7 @@ document.body.addEventListener('keydown', e => {
         return prevent(e) || isPicMode() || window.mkdirBtn()
 
       case 'KeyB':
-        return prevent(e) || toggleTheme()
+        return prevent(e) || toggleTheme() // eslint-disable-line
     }
   }
 
