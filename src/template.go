@@ -37,7 +37,7 @@
         <tr>
             <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
             <td class="file-size"><code>{{.Size}}</code></td>
-            <td class="arrow"><i class="arrow-icon"></i></td>
+            <td class="arrow"><div class="arrow-icon"></div></td>
             <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
         </tr>
     {{end}}
@@ -45,7 +45,7 @@
         <tr>
             <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
             <td class="file-size"><code>{{.Size}}</code></td>
-            <td class="arrow"><i class="arrow-icon"></i></td>
+            <td class="arrow"><div class="arrow-icon"></div></td>
             <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
         </tr>
     {{end}}
@@ -55,4 +55,5 @@
     <span id="dlBarName"></span>
     <div id="dlBarPc">1%</div>
 </div>
+<div id="ok" class="icon-large-ok"></div>
 </html>

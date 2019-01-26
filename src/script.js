@@ -17,17 +17,20 @@ const pics = document.getElementById('pics')
 const picsHolder = document.getElementById('picsHolder')
 const icHolder = document.getElementById('icHolder')
 const manualUpload = document.getElementById('clickupload')
+const okBadge = document.getElementById('ok')
 
 // helpers
 let allA
 let imgsIndex
 let allImgs
 const decode = a => decodeURIComponent(a).replace(location.origin, '')
-const getArrowSelected = () => document.querySelectorAll('i.arrow-selected')[0]
+const getArrowSelected = () => document.querySelector('.arrow-selected')
 const getASelected = () => !getArrowSelected() ? false : getArrowSelected().parentElement.parentElement.querySelectorAll('a')[0]
 const prependPath = a => a.startsWith('/') ? a : decodeURI(location.pathname) + a
 const prevent = e => e.preventDefault()
+const okBageFlicker = () => okBadge.classList.remove('runFade') || void okBadge.offsetWidth || okBadge.classList.add('runFade')
 
+window.ok = okBageFlicker
 // Add upload icon on phones
 if (typeof window.orientation !== 'undefined') {
   icHolder.innerHTML = '<div onclick="document.getElementById(\'clickupload\').click()" class="ic icon-large-upload"></div>' + icHolder.innerHTML
@@ -66,7 +69,7 @@ window.onClickLink = e => {
   return true
 }
 
-const refresh = () => browseTo(location.href)
+const refresh = () => browseTo(location.href) || okBageFlicker()
 const prevPage = () => picsOff() || browseTo(location.href + '../')
 window.onpopstate = prevPage
 
@@ -290,7 +293,7 @@ function restoreCursorPos () {
 }
 
 function moveArrow (down) {
-  const all = Array.from(document.querySelectorAll('i.arrow-icon'))
+  const all = Array.from(document.querySelectorAll('.arrow-icon'))
   let i = all.findIndex(el => el.classList.contains('arrow-selected'))
 
   clearArrowSelected()

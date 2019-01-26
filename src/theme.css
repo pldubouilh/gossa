@@ -1,7 +1,4 @@
 html, a {
-    background-color: #2d3436; color: #dfe6e9;
-}
-
-.arrow {
-    filter: invert(100%) !important;
+    background-color: #2d3436;
+    color: #dfe6e9;
 }
