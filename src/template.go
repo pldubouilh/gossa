@@ -50,10 +50,9 @@
         </tr>
     {{end}}
     </table>
-
-    <div id="progress" style="display:none;">
-        <span id="dlBarName"></span>
-        <div id="dlBarPc">1%</div>
-    </div>
 </body>
+<div id="progress" style="display:none;">
+    <span id="dlBarName"></span>
+    <div id="dlBarPc">1%</div>
+</div>
 </html>
