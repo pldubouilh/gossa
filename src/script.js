@@ -18,6 +18,7 @@ const picsHolder = document.getElementById('picsHolder')
 const icHolder = document.getElementById('icHolder')
 const manualUpload = document.getElementById('clickupload')
 const okBadge = document.getElementById('ok')
+const sadBadge = document.getElementById('sad')
 
 // helpers
 let allA
@@ -28,9 +29,8 @@ const getArrowSelected = () => document.querySelector('.arrow-selected')
 const getASelected = () => !getArrowSelected() ? false : getArrowSelected().parentElement.parentElement.querySelectorAll('a')[0]
 const prependPath = a => a.startsWith('/') ? a : decodeURI(location.pathname) + a
 const prevent = e => e.preventDefault()
-const okBageFlicker = () => okBadge.classList.remove('runFade') || void okBadge.offsetWidth || okBadge.classList.add('runFade')
+const flicker = w => w.classList.remove('runFade') || void w.offsetWidth || w.classList.add('runFade')
 
-window.ok = okBageFlicker
 // Add upload icon on phones
 if (typeof window.orientation !== 'undefined') {
   icHolder.innerHTML = '<div onclick="document.getElementById(\'clickupload\').click()" class="ic icon-large-upload"></div>' + icHolder.innerHTML
@@ -40,7 +40,7 @@ if (typeof window.orientation !== 'undefined') {
 manualUpload.addEventListener('change', () => Array.from(manualUpload.files).forEach(f => postFile(f, '/' + f.name)), false)
 
 // Soft nav
-function browseTo (href) {
+function browseTo (href, flickerDone) {
   fetch(href, { credentials: 'include' }).then(r => r.text().then(t => {
     const parsed = new DOMParser().parseFromString(t, 'text/html')
     const table = parsed.querySelectorAll('table')[0].innerHTML
@@ -54,8 +54,12 @@ function browseTo (href) {
       history.replaceState({}, '', encodeURI(title))
     }
 
+    if (flickerDone) {
+      flicker(okBadge)
+    }
+
     init()
-  }))
+  })).catch(() => flicker(sadBadge))
 }
 
 window.onClickLink = e => {
@@ -69,7 +73,7 @@ window.onClickLink = e => {
   return true
 }
 
-const refresh = () => browseTo(location.href) || okBageFlicker()
+const refresh = () => browseTo(location.href, true)
 const prevPage = (url) => picsOff() || browseTo(url || (location.href + '../'))
 window.onpopstate = () => prevPage(location.href)
 
@@ -81,6 +85,7 @@ function rpcFs (call, args, cb) {
   xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
   xhr.send(JSON.stringify({ call, args }))
   xhr.onload = cb
+  xhr.onerror = () => flicker(sadBadge)
 }
 
 const mkdirCall = (path, cb) => rpcFs('mkdirp', [prependPath(path)], cb)

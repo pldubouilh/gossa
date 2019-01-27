@@ -55,5 +55,6 @@
     <span id="dlBarName"></span>
     <div id="dlBarPc">1%</div>
 </div>
-<div id="ok" class="icon-large-ok"></div>
+<div id="ok" class="notif icon-large-ok"></div>
+<div id="sad" class="notif icon-large-sad-server"></div>
 </html>

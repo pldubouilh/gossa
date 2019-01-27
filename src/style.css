@@ -11,6 +11,9 @@
   td.display-name {
     padding-left: 1em !important;
   }
+  #icHolder {
+    top: 20px !important;
+  }
 }
 
 html {
@@ -199,10 +202,10 @@ h1 {
   animation: fade 3s 1;
 }
 
-#ok {
+.notif {
   opacity:0;
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   position: fixed;
   bottom: 30px;
   right: 30px;
