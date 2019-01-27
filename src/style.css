@@ -1,11 +1,21 @@
 @media(min-resolution: 192dpi) {
   html {
-    zoom: .5;
+    font-size: 1em !important;
+  }
+  tr {
+    line-height: 2em !important;
+  }
+  .arrow {
+    display: none !important;
+  }
+  td.display-name {
+    padding-left: 1em !important;
   }
 }
 
 html {
   font-size: 1.5em;
+  overflow-x: hidden;
 }
 
 a {
@@ -27,44 +37,61 @@ div, i {
 }
 
 .icon {
-  display: block;
   height: 25px;
   width: 25px;
-  margin: 1px;
+  display: block;
   cursor: pointer;
 }
 
-.arrow-selected::after {
-  content: ">";
+.arrow-selected {
+  background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0nMS4wJyBlbmNvZGluZz0ndXRmLTgnPz4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDEyOSAxMjkiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAxMjkgMTI5Ij4KICA8Zz4KICAgIDxwYXRoIGQ9Im00MC40LDEyMS4zYy0wLjgsMC44LTEuOCwxLjItMi45LDEuMnMtMi4xLTAuNC0yLjktMS4yYy0xLjYtMS42LTEuNi00LjIgMC01LjhsNTEtNTEtNTEtNTFjLTEuNi0xLjYtMS42LTQuMiAwLTUuOCAxLjYtMS42IDQuMi0xLjYgNS44LDBsNTMuOSw1My45YzEuNiwxLjYgMS42LDQuMiAwLDUuOGwtNTMuOSw1My45eiIvPgogIDwvZz4KPC9zdmc+Cg==");
+  height: inherit;
+  width: inherit;
 }
 
 .arrow {
-  min-width: 32px;
+  height: 22px;
+  width: 22px;
   text-align: center;
   font-size: 1.15em;
   font-weight: bold;
-  padding-left: 10px;
+  padding-left: .5em;
 }
+
+table {
+  width: 100%;
+}
+
+td.iconRow {
+  text-align: right;
+  height: 25px;
+  width: 25px;
+}
+
 
 td.file-size {
   text-align: right;
   padding-left: 1em;
+  width: 30px;
 }
 
 td.display-name {
-  padding-left: 0.2em;
-  width: 100%;
+  padding-left: .5em;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  white-space: nowrap;
+  max-width: 100px;
 }
 
 h1 {
   display: inline-block;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
 #icHolder {
   display: inline-block;
   right: 20px;
-  top: 40px;
+  top: 34px;
   position: absolute;
 }
 
@@ -84,8 +111,8 @@ h1 {
   position: fixed;
   left: 20px;
   top: 20px;
-  width: 32px;
-  height: 32px;
+  width: 2em;
+  height: 2em;
   cursor: pointer;
   z-index: 101;
 }
@@ -139,6 +166,8 @@ h1 {
 }
 
 #pics {
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
   justify-content:center;
   align-items:center;
   position: fixed;

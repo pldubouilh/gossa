@@ -35,7 +35,7 @@
     <table>
     {{range .RowsFolders}}
         <tr>
-            <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
+            <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
             <td class="file-size"><code>{{.Size}}</code></td>
             <td class="arrow"><div class="arrow-icon"></div></td>
             <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
@@ -43,7 +43,7 @@
     {{end}}
     {{range .RowsFiles}}
         <tr>
-            <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
+            <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
             <td class="file-size"><code>{{.Size}}</code></td>
             <td class="arrow"><div class="arrow-icon"></div></td>
             <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
