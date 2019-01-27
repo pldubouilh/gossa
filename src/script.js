@@ -37,10 +37,10 @@ if (typeof window.orientation !== 'undefined') {
 }
 
 // Manual upload
-manualUpload.addEventListener('change', () => Array.from(manualUpload.files).forEach(f => postFile(f, '/' + f.name)), false)
+manualUpload.addEventListener('change', () => Array.from(manualUpload.files).forEach(f => isDupe(f.name) || postFile(f, '/' + f.name)), false)
 
 // Soft nav
-function browseTo (href, flickerDone) {
+function browseTo (href, flickerDone, skipHistory) {
   fetch(href, { credentials: 'include' }).then(r => r.text().then(t => {
     const parsed = new DOMParser().parseFromString(t, 'text/html')
     const table = parsed.querySelectorAll('table')[0].innerHTML
@@ -51,7 +51,10 @@ function browseTo (href, flickerDone) {
     if (document.head.querySelectorAll('title')[0].innerText !== title) {
       document.head.querySelectorAll('title')[0].innerText = title
       document.body.querySelectorAll('h1')[0].innerText = '.' + title
-      history.replaceState({}, '', encodeURI(title))
+
+      if (!skipHistory) {
+        history.pushState({}, '', encodeURI(title))
+      }
     }
 
     if (flickerDone) {
@@ -74,8 +77,10 @@ window.onClickLink = e => {
 }
 
 const refresh = () => browseTo(location.href, true)
-const prevPage = (url) => picsOff() || browseTo(url || (location.href + '../'))
-window.onpopstate = () => prevPage(location.href)
+
+const prevPage = (url, skipHistory) => picsOff() || browseTo(url, false, skipHistory)
+
+window.onpopstate = () => prevPage(location.href, true)
 
 // RPC
 function rpcFs (call, args, cb) {
@@ -424,7 +429,7 @@ document.body.addEventListener('keydown', e => {
       return prevent(e) || picsOn(true) || picsNav(true) || getASelected().click()
 
     case 'ArrowLeft':
-      return prevent(e) || picsNav(false) || prevPage()
+      return prevent(e) || picsNav(false) || prevPage(location.href + '../')
 
     case 'Escape':
       return prevent(e) || resetBackgroundLinks() || picsOff()
