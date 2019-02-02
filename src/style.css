@@ -17,6 +17,9 @@
   body {
     margin-left: 10px !important;
   }
+  .ic {
+    display: inherit !important;
+  }
 }
 
 html {
@@ -93,7 +96,10 @@ td.display-name {
 
 h1 {
   display: inline-block;
-  margin-top: 20px;
+  margin-top: 30px;
+  word-wrap: break-word;
+  width: 80%;
+  margin-bottom: 28px;
 }
 
 #icHolder {

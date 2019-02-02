@@ -33,11 +33,6 @@ const prependPath = a => a.startsWith('/') ? a : decodeURI(location.pathname) + 
 const prevent = e => e.preventDefault()
 const flicker = w => w.classList.remove('runFade') || void w.offsetWidth || w.classList.add('runFade')
 
-// Add upload icon on phones
-if (typeof window.orientation !== 'undefined') {
-  icHolder.innerHTML = '<div onclick="document.getElementById(\'clickupload\').click()" class="ic icon-large-upload"></div>' + icHolder.innerHTML
-}
-
 // Manual upload
 manualUpload.addEventListener('change', () => Array.from(manualUpload.files).forEach(f => isDupe(f.name) || postFile(f, '/' + f.name)), false)
 

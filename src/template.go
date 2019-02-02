@@ -24,6 +24,7 @@
     <h1>.{{.Title}}</h1>
 
     <div id="icHolder">
+        <div style="display:none;" onclick="document.getElementById('clickupload').click()" class="ic icon-large-upload manualUp"></div>
         <div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
         <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>
     </div>
