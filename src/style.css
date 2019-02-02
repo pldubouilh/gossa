@@ -1,4 +1,4 @@
-@media(min-resolution: 192dpi) {
+@media(max-width: 800px) {
   html {
     font-size: 1em !important;
   }
@@ -14,6 +14,9 @@
   #icHolder {
     top: 20px !important;
   }
+  body {
+    margin-left: 10px !important;
+  }
 }
 
 html {
@@ -24,7 +27,10 @@ html {
 a {
   text-decoration: none;
   background-color: transparent !important;
-  /* border-bottom: .01em solid #dfe6e9; */
+}
+
+a.linkSelected {
+  border-bottom: .01em solid #2d3436;
 }
 
 tr {

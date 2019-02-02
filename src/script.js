@@ -19,6 +19,8 @@ const icHolder = document.getElementById('icHolder')
 const manualUpload = document.getElementById('clickupload')
 const okBadge = document.getElementById('ok')
 const sadBadge = document.getElementById('sad')
+const pageTitle = document.head.querySelector('title')
+const pageH1 = document.body.querySelector('h1')
 
 // helpers
 let allA
@@ -48,9 +50,9 @@ function browseTo (href, flickerDone, skipHistory) {
 
     const title = parsed.head.querySelectorAll('title')[0].innerText
     // check if is current path - if so skip following
-    if (document.head.querySelectorAll('title')[0].innerText !== title) {
-      document.head.querySelectorAll('title')[0].innerText = title
-      document.body.querySelectorAll('h1')[0].innerText = '.' + title
+    if (pageTitle.innerText !== title) {
+      pageTitle.innerText = title
+      pageH1.innerText = '.' + title
 
       if (!skipHistory) {
         history.pushState({}, '', encodeURI(title))
@@ -395,6 +397,12 @@ function onPaste () {
   mvCall(root, dest + filename, onPaste)
 }
 
+function onCut () {
+  const a = getASelected()
+  a.classList.add('linkSelected')
+  cuts.push(prependPath(decode(a.href)))
+}
+
 // Kb handler
 let typedPath = ''
 let typedToken = null
@@ -442,11 +450,10 @@ document.body.addEventListener('keydown', e => {
         return prevent(e) || isPicMode() || cpPath()
 
       case 'KeyX':
-        cuts.push(prependPath(decode(getASelected().href)))
-        return prevent(e) || false
+        return prevent(e) || onCut()
 
       case 'KeyV':
-        return prevent(e) || onPaste()
+        return prevent(e) || !confirm('move items?') || onPaste()
 
       case 'Backspace':
         return prevent(e) || isPicMode() || window.rm(e)
@@ -479,5 +486,10 @@ function init () {
   imgsIndex = 0
   restoreCursorPos()
   console.log('Browsed to ' + location.href)
+
+  if (cuts.length) {
+    const match = allA.filter(a => cuts.find(c => c === decode(a.href)))
+    match.forEach(m => m.classList.add('linkSelected'))
+  }
 }
 init()
