@@ -1,7 +1,12 @@
 html, a {
-    background-color: #2d3436; color: #dfe6e9;
+    background-color: #2d3436;
+    color: #dfe6e9;
 }
 
-.arrow, .icon-large-images {
+.arrow {
     filter: invert(100%) !important;
+}
+
+a.linkSelected {
+  border-bottom: .01em solid #dfe6e9;
 }

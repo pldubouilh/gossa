@@ -15,20 +15,29 @@ const barDiv = document.getElementById('progress')
 const upGrid = document.getElementById('drop-grid')
 const pics = document.getElementById('pics')
 const picsHolder = document.getElementById('picsHolder')
-const picsLabel = document.getElementById('picsLabel')
+const icHolder = document.getElementById('icHolder')
+const manualUpload = document.getElementById('clickupload')
+const okBadge = document.getElementById('ok')
+const sadBadge = document.getElementById('sad')
+const pageTitle = document.head.querySelector('title')
+const pageH1 = document.body.querySelector('h1')
 
 // helpers
 let allA
 let imgsIndex
 let allImgs
 const decode = a => decodeURIComponent(a).replace(location.origin, '')
-const getArrowSelected = () => document.querySelectorAll('i.arrow-selected')[0]
+const getArrowSelected = () => document.querySelector('.arrow-selected')
 const getASelected = () => !getArrowSelected() ? false : getArrowSelected().parentElement.parentElement.querySelectorAll('a')[0]
 const prependPath = a => a.startsWith('/') ? a : decodeURI(location.pathname) + a
 const prevent = e => e.preventDefault()
+const flicker = w => w.classList.remove('runFade') || void w.offsetWidth || w.classList.add('runFade')
+
+// Manual upload
+manualUpload.addEventListener('change', () => Array.from(manualUpload.files).forEach(f => isDupe(f.name) || postFile(f, '/' + f.name)), false)
 
 // Soft nav
-function browseTo (href) {
+function browseTo (href, flickerDone, skipHistory) {
   fetch(href, { credentials: 'include' }).then(r => r.text().then(t => {
     const parsed = new DOMParser().parseFromString(t, 'text/html')
     const table = parsed.querySelectorAll('table')[0].innerHTML
@@ -36,14 +45,21 @@ function browseTo (href) {
 
     const title = parsed.head.querySelectorAll('title')[0].innerText
     // check if is current path - if so skip following
-    if (document.head.querySelectorAll('title')[0].innerText !== title) {
-      document.head.querySelectorAll('title')[0].innerText = title
-      document.body.querySelectorAll('h1')[0].innerText = '.' + title
-      history.pushState({}, '', encodeURI(title))
+    if (pageTitle.innerText !== title) {
+      pageTitle.innerText = title
+      pageH1.innerText = '.' + title
+
+      if (!skipHistory) {
+        history.pushState({}, '', encodeURI(title))
+      }
+    }
+
+    if (flickerDone) {
+      flicker(okBadge)
     }
 
     init()
-  }))
+  })).catch(() => flicker(sadBadge))
 }
 
 window.onClickLink = e => {
@@ -57,9 +73,11 @@ window.onClickLink = e => {
   return true
 }
 
-const refresh = () => browseTo(location.href)
-const prevPage = () => browseTo(location.href + '../')
-window.onpopstate = prevPage
+const refresh = () => browseTo(location.href, true)
+
+const prevPage = (url, skipHistory) => picsOff() || browseTo(url, false, skipHistory)
+
+window.onpopstate = () => prevPage(location.href, true)
 
 // RPC
 function rpcFs (call, args, cb) {
@@ -69,6 +87,7 @@ function rpcFs (call, args, cb) {
   xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
   xhr.send(JSON.stringify({ call, args }))
   xhr.onload = cb
+  xhr.onerror = () => flicker(sadBadge)
 }
 
 const mkdirCall = (path, cb) => rpcFs('mkdirp', [prependPath(path)], cb)
@@ -281,7 +300,7 @@ function restoreCursorPos () {
 }
 
 function moveArrow (down) {
-  const all = Array.from(document.querySelectorAll('i.arrow-icon'))
+  const all = Array.from(document.querySelectorAll('.arrow-icon'))
   let i = all.findIndex(el => el.classList.contains('arrow-selected'))
 
   clearArrowSelected()
@@ -317,9 +336,9 @@ window.picsNav = () => picsNav(true)
 function setImage () {
   const src = allImgs[imgsIndex]
   picsHolder.src = src
-  picsLabel.innerText = src.split('/').pop()
   storeLastArrowSrc(src)
   restoreCursorPos()
+  history.replaceState({}, '', encodeURI(src.split('/').pop()))
 }
 
 function picsOn (ifImgSelected, href) {
@@ -338,7 +357,13 @@ function picsOn (ifImgSelected, href) {
   return true
 }
 
-const picsOff = () => { pics.style.display = 'none' }
+function picsOff (skip) {
+  if (!isPicMode()) { return }
+
+  history.replaceState({}, '', encodeURI(location.href.split('/').slice(0, -1).join('/') + '/'))
+  pics.style.display = 'none'
+  return true
+}
 
 window.picsToggle = () => isPicMode() ? picsOff() : picsOn()
 
@@ -365,6 +390,12 @@ function onPaste () {
   const filename = root.split('/').pop()
   const dest = isFolderDest ? pwd + getASelected().innerText : pwd
   mvCall(root, dest + filename, onPaste)
+}
+
+function onCut () {
+  const a = getASelected()
+  a.classList.add('linkSelected')
+  cuts.push(prependPath(decode(a.href)))
 }
 
 // Kb handler
@@ -401,7 +432,7 @@ document.body.addEventListener('keydown', e => {
       return prevent(e) || picsOn(true) || picsNav(true) || getASelected().click()
 
     case 'ArrowLeft':
-      return prevent(e) || picsNav(false) || prevPage()
+      return prevent(e) || picsNav(false) || prevPage(location.href + '../')
 
     case 'Escape':
       return prevent(e) || resetBackgroundLinks() || picsOff()
@@ -414,11 +445,10 @@ document.body.addEventListener('keydown', e => {
         return prevent(e) || isPicMode() || cpPath()
 
       case 'KeyX':
-        cuts.push(prependPath(decode(getASelected().href)))
-        return prevent(e) || false
+        return prevent(e) || onCut()
 
       case 'KeyV':
-        return prevent(e) || onPaste()
+        return prevent(e) || !confirm('move items?') || onPaste()
 
       case 'Backspace':
         return prevent(e) || isPicMode() || window.rm(e)
@@ -430,7 +460,7 @@ document.body.addEventListener('keydown', e => {
         return prevent(e) || isPicMode() || window.mkdirBtn()
 
       case 'KeyB':
-        return prevent(e) || toggleTheme()
+        return prevent(e) || toggleTheme() // eslint-disable-line
     }
   }
 
@@ -451,5 +481,10 @@ function init () {
   imgsIndex = 0
   restoreCursorPos()
   console.log('Browsed to ' + location.href)
+
+  if (cuts.length) {
+    const match = allA.filter(a => cuts.find(c => c === decode(a.href)))
+    match.forEach(m => m.classList.add('linkSelected'))
+  }
 }
 init()

@@ -6,7 +6,7 @@ run:
 	./gossa fixture
 
 watch:
-	ls src/* | entr -rc make run
+	ls src/** | entr -rc make run
 
 embed:
 	echo "embedding css and js into binary"

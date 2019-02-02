@@ -19,41 +19,43 @@
 
 <body>
     <div id="drop-grid"> Drop here to upload </div>
+    <input type="file" id="clickupload" style="display:none"/>
 
     <h1>.{{.Title}}</h1>
 
-    <div class="icHolder">
+    <div id="icHolder">
+        <div style="display:none;" onclick="document.getElementById('clickupload').click()" class="ic icon-large-upload manualUp"></div>
         <div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
         <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>
     </div>
 
     <div id="pics" style="display:none;">
         <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img onclick="window.picsNav()" id="picsHolder" />
-        <span id="picsLabel"></span>
     </div>
 
     <table>
     {{range .RowsFolders}}
         <tr>
-            <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
+            <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
             <td class="file-size"><code>{{.Size}}</code></td>
-            <td class="arrow"><i class="arrow-icon"></i></td>
+            <td class="arrow"><div class="arrow-icon"></div></td>
             <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
         </tr>
     {{end}}
     {{range .RowsFiles}}
         <tr>
-            <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
+            <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
             <td class="file-size"><code>{{.Size}}</code></td>
-            <td class="arrow"><i class="arrow-icon"></i></td>
+            <td class="arrow"><div class="arrow-icon"></div></td>
             <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
         </tr>
     {{end}}
     </table>
-
-    <div id="progress" style="display:none;">
-        <span id="dlBarName"></span>
-        <div id="dlBarPc">1%</div>
-    </div>
 </body>
+<div id="progress" style="display:none;">
+    <span id="dlBarName"></span>
+    <div id="dlBarPc">1%</div>
+</div>
+<div id="ok" class="notif icon-large-ok"></div>
+<div id="sad" class="notif icon-large-sad-server"></div>
 </html>
