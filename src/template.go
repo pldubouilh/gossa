@@ -18,6 +18,8 @@
 </head>
 
 <body>
+    <div style="display: none;" onclick="window.quitAll()" id="quitAll"><i style="display: none;" id="toast">cant reach server</i></div>
+    <div style="display: none;" contenteditable="true" id="text-editor"></div>
     <div id="drop-grid"> Drop here to upload </div>
     <input type="file" id="clickupload" style="display:none"/>
 
@@ -25,13 +27,12 @@
 
     <div id="icHolder">
         <div style="display:none;" onclick="document.getElementById('clickupload').click()" class="ic icon-large-upload manualUp"></div>
-        <div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
+        <div style="display:none;" class="ic icon-large-images" onclick="window.picsOn()"></div>
+        <div onclick="window.padOn()" class="ic icon-large-pad"></div>
         <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>
     </div>
 
-    <div id="pics" style="display:none;">
-        <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img onclick="window.picsNav()" id="picsHolder" />
-    </div>
+    <div id="pics" style="display:none;"> <img onclick="window.picsNav()" id="picsHolder" /></div>
 
     <table>
     {{range .RowsFolders}}

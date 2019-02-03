@@ -21,6 +21,9 @@ const okBadge = document.getElementById('ok')
 const sadBadge = document.getElementById('sad')
 const pageTitle = document.head.querySelector('title')
 const pageH1 = document.body.querySelector('h1')
+const editor = document.getElementById('text-editor')
+const crossIcon = document.getElementById('quitAll')
+const toast = document.getElementById('toast')
 
 // helpers
 let allA
@@ -63,19 +66,28 @@ function browseTo (href, flickerDone, skipHistory) {
 }
 
 window.onClickLink = e => {
+  storeLastArrowSrc(e.target.href)
+
+  // follow dirs
   if (e.target.innerText.endsWith('/')) {
-    storeLastArrowSrc(e.target.href)
     browseTo(e.target.href)
     return false
-  } else if (picsOn(true, e.target.href)) {
-    return false
   }
-  return true
+
+  // try dynamic, otherwise just click item
+  restoreCursorPos()
+  if (picsOn(true) || picsNav(true) || padOn(true)) {
+    return false
+  } else {
+    return true
+  }
 }
 
 const refresh = () => browseTo(location.href, true)
 
-const prevPage = (url, skipHistory) => picsOff() || browseTo(url, false, skipHistory)
+const softPrev = () => history.replaceState({}, '', decodeURI(location.href.split('/').slice(0, -1).join('/') + '/'))
+
+const prevPage = (url, skipHistory) => window.quitAll() || browseTo(url, false, skipHistory)
 
 window.onpopstate = () => prevPage(location.href, true)
 
@@ -188,7 +200,7 @@ upGrid.ondragleave = e => {
 }
 
 document.ondragenter = e => {
-  if (isPicMode()) { return }
+  if (isEditorMode() || isPicMode()) { return }
   cancelDefault(e)
 
   resetBackgroundLinks()
@@ -232,6 +244,89 @@ document.ondrop = e => {
 
   return false
 }
+
+// pad
+function saveText (cbok, cberr) {
+  const formData = new FormData()
+  formData.append(fileEdited, editor.innerText)
+  fetch(location.origin + '/post', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+    headers: new Headers({ "gossa-path": encodeURIComponent(decodeURI(location.pathname)) })
+  }).then(() => {
+    toast.style.display = "none"
+    cbok && cbok()
+  }).catch(() => {
+    toast.style.display = "block"
+    cberr && cberr()
+  })
+}
+
+const isEditorMode = () => editor.style.display === "block"
+const textTypes = ['.txt', '.rtf', '.md', '.log']
+const isTextFile = src => src && textTypes.find(type => src.toLocaleLowerCase().includes(type))
+let fileEdited
+
+window.padOff = function () {
+  if (!isEditorMode()) { return }
+
+  saveText(() => {
+    clearInterval(window.padTimer)
+    window.onbeforeunload = null
+    editor.style.display = crossIcon.style.display = "none"
+    softPrev()
+    refresh()
+  }, () => {
+    alert('cant save!\r\nleave window open to resume saving\r\nwhen connection back up')
+  })
+
+  return true
+}
+
+async function padOn (ifTxtSelected) {
+  const a = getASelected()
+  if (ifTxtSelected && !isTextFile(a.innerText)) {
+    return
+  }
+
+  if (isTextFile(a.innerText)) {
+    try {
+      fileEdited = a.innerText
+      const f = await fetch(a.href, {
+        credentials: 'include',
+        headers: new Headers({
+          'pragma': 'no-cache',
+          'cache-control': 'no-cache'
+        })
+      })
+      editor.innerText = await f.text()
+    } catch (error) {
+      return alert('cant read file')
+    }
+  } else {
+    fileEdited = prompt('new filename', '')
+    if (!fileEdited) { return }
+    fileEdited = isTextFile(fileEdited) ? fileEdited : fileEdited + '.txt'
+    editor.innerText = ''
+    saveText()
+    storeLastArrowSrc(location.href + fileEdited)
+  }
+
+  console.log('editing file', fileEdited)
+  editor.style.display = crossIcon.style.display = "block"
+  editor.focus()
+  history.replaceState({}, '', encodeURI(fileEdited))
+  window.onbeforeunload = warningMsg
+  window.padTimer = setInterval(saveText, 5000)
+  return true
+}
+
+window.padOn = padOn
+window.padOff = padOff
+
+// quit pictures or editor
+window.quitAll = () => picsOff() || padOff()
 
 // Mkdir icon
 window.mkdirBtn = function () {
@@ -341,8 +436,8 @@ function setImage () {
   history.replaceState({}, '', encodeURI(src.split('/').pop()))
 }
 
-function picsOn (ifImgSelected, href) {
-  href = href || getASelected().href
+function picsOn (ifImgSelected) {
+  const href = getASelected().href
 
   if (isPicMode() || (ifImgSelected && !isPic(href))) {
     return false
@@ -353,19 +448,18 @@ function picsOn (ifImgSelected, href) {
   }
 
   setImage()
+  crossIcon.style.display = "block"
   pics.style.display = 'flex'
   return true
 }
+window.picsOn = picsOn
 
 function picsOff (skip) {
   if (!isPicMode()) { return }
-
-  history.replaceState({}, '', encodeURI(location.href.split('/').slice(0, -1).join('/') + '/'))
-  pics.style.display = 'none'
+  softPrev()
+  pics.style.display = crossIcon.style.display = 'none'
   return true
 }
-
-window.picsToggle = () => isPicMode() ? picsOff() : picsOn()
 
 function picsNav (down) {
   if (!isPicMode()) { return false }
@@ -419,6 +513,11 @@ function setCursorToClosestTyped () {
 }
 
 document.body.addEventListener('keydown', e => {
+  if (isEditorMode()) {
+    if (e.code === 'Escape') { padOff() }
+    return
+  }
+
   switch (e.code) {
     case 'Tab':
     case 'ArrowDown':
@@ -429,13 +528,16 @@ document.body.addEventListener('keydown', e => {
 
     case 'Enter':
     case 'ArrowRight':
-      return prevent(e) || picsOn(true) || picsNav(true) || getASelected().click()
+      return prevent(e) || getASelected().click()
 
     case 'ArrowLeft':
       return prevent(e) || picsNav(false) || prevPage(location.href + '../')
 
     case 'Escape':
       return prevent(e) || resetBackgroundLinks() || picsOff()
+
+    case 'Delete':
+      return prevent(e) || isPicMode() || window.rm(e)
   }
 
   // Ctrl keys
