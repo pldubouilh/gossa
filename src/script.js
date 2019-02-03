@@ -560,9 +560,6 @@ document.body.addEventListener('keydown', e => {
 
       case 'KeyD':
         return prevent(e) || isPicMode() || window.mkdirBtn()
-
-      case 'KeyB':
-        return prevent(e) || toggleTheme() // eslint-disable-line
     }
   }
 

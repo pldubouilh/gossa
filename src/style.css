@@ -23,17 +23,20 @@
 }
 
 html {
+  color: #dfe6e9;
+  background-color: #2d3436;
   font-size: 1.5em;
   overflow-x: hidden;
 }
 
 a {
+  color: #dfe6e9;
   text-decoration: none;
   background-color: transparent !important;
 }
 
 a.linkSelected {
-  border-bottom: .01em solid #2d3436;
+  border-bottom: .01em solid #dfe629;
 }
 
 tr {
@@ -67,6 +70,7 @@ div, i {
   font-size: 1.15em;
   font-weight: bold;
   padding-left: .5em;
+  filter: invert(100%) !important;
 }
 
 table {

@@ -6,14 +6,6 @@
     <title>{{.Title}}</title>
     <link href="data:image/png;base64,favicon_will_be_here" rel="icon" type="image/png" />
     <style type="text/css">css_will_be_here</style>
-    <style type="text/css" id="theme">theme_will_be_here</style>
-    <script>
-        const theme = document.getElementById('theme')
-        const themeNow = () => localStorage.getItem('theme')
-        const setTheme = () => { theme.disabled = themeNow() === 'regular' }
-        const toggleTheme = () => localStorage.setItem('theme', (themeNow() === 'regular' ? 'alt' : 'regular')) || setTheme()
-        setTheme()
-    </script>
     <script>window.onload = function () { js_will_be_here }</script>
 </head>
 

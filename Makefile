@@ -13,7 +13,6 @@ embed:
 	cp src/main.go gossa.go
 	perl -pe 's/template_will_be_here/`cat src\/template.go`/ge' -i gossa.go
 	perl -pe 's/css_will_be_here/`cat src\/style.css`/ge' -i gossa.go
-	perl -pe 's/theme_will_be_here/`cat src\/theme.css`/ge' -i gossa.go
 	perl -pe 's/js_will_be_here/`cat src\/script.js`/ge' -i gossa.go
 	perl -pe 's/favicon_will_be_here/`base64 -w0 src\/favicon.png`/ge' -i gossa.go
 
