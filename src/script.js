@@ -24,6 +24,7 @@ const pageH1 = document.body.querySelector('h1')
 const editor = document.getElementById('text-editor')
 const crossIcon = document.getElementById('quitAll')
 const toast = document.getElementById('toast')
+const table = document.querySelector('table')
 
 // helpers
 let allA
@@ -43,10 +44,9 @@ manualUpload.addEventListener('change', () => Array.from(manualUpload.files).for
 function browseTo (href, flickerDone, skipHistory) {
   fetch(href, { credentials: 'include' }).then(r => r.text().then(t => {
     const parsed = new DOMParser().parseFromString(t, 'text/html')
-    const table = parsed.querySelectorAll('table')[0].innerHTML
-    document.body.querySelectorAll('table')[0].innerHTML = table
+    table.innerHTML = parsed.querySelector('table').innerHTML
 
-    const title = parsed.head.querySelectorAll('title')[0].innerText
+    const title = parsed.head.querySelector('title').innerText
     // check if is current path - if so skip following
     if (pageTitle.innerText !== title) {
       pageTitle.innerText = title
@@ -135,6 +135,7 @@ function shouldRefresh () {
     totalUploadsSize = 0
     totalUploadedSize = []
     barDiv.style.display = 'none'
+    table.classList.remove('uploading-table')
     refresh()
   }
 }
@@ -151,6 +152,7 @@ function postFile (file, path) {
   path = decodeURI(location.pathname).slice(0, -1) + path
   window.onbeforeunload = warningMsg
 
+  table.classList.add('uploading-table')
   barDiv.style.display = 'block'
   totalUploads += 1
   totalUploadsSize += file.size

@@ -148,6 +148,10 @@ h1 {
   z-index: 101;
 }
 
+.uploading-table {
+  padding-bottom: 80px;
+}
+
 #progress {
   width: 99%;
   left: 0.5%;
@@ -157,6 +161,7 @@ h1 {
   padding-bottom: 10px;
   max-height: 50%;
   overflow-x: hidden;
+  background-color: #2d3436;
 }
 
 #dlBarName {
