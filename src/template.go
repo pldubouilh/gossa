@@ -12,15 +12,14 @@
 <body>
     <div style="display: none;" onclick="window.quitAll()" id="quitAll"><i style="display: none;" id="toast">cant reach server</i></div>
     <div style="display: none;" contenteditable="true" id="text-editor"></div>
-    <div id="drop-grid"> Drop here to upload </div>
+    <div id="drop-grid"></div>
     <input type="file" id="clickupload" style="display:none"/>
 
     <h1>.{{.Title}}</h1>
 
     <div id="icHolder">
         <div style="display:none;" onclick="document.getElementById('clickupload').click()" class="ic icon-large-upload manualUp"></div>
-        <div style="display:none;" class="ic icon-large-images" onclick="window.picsOn()"></div>
-        <div onclick="window.padOn()" class="ic icon-large-pad"></div>
+        <div onclick="window.displayPad()" class="ic icon-large-pad"></div>
         <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>
     </div>
 

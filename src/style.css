@@ -36,7 +36,7 @@ a {
 }
 
 a.linkSelected {
-  border-bottom: .01em solid #dfe629;
+  border-bottom: .01em solid #dfe6e9;
 }
 
 tr {
@@ -49,6 +49,10 @@ body {
 
 div, i {
   background-size: cover !important;
+}
+
+.highlight {
+  background-color: rgba(123, 123, 123, 0.5);
 }
 
 .icon {
@@ -188,13 +192,17 @@ h1 {
   font-size: 4em;
   font-family: Helvetica;
   color: green;
-  opacity: 0.8;
-  background-color: rgba(123, 123, 123, 0.2)
+  opacity: 1;
+  background-color: rgba(123, 123, 123, 0.2);
+  padding: 20px;
 }
 
+#drop-grid::after {
+  content: "Drop here to upload";
+}
 
 #text-editor {
-  height: 100%;
+  font-family: mono;
   background-color: #2d3436;
   position: fixed;
   left: 0px;
@@ -205,8 +213,8 @@ h1 {
   overflow-y: auto;
   word-wrap: anywhere;
   padding: 20px;
-  padding-bottom: 0px;
-  border-bottom: 10px;
+  margin-bottom: 20px;
+  outline: none;
   width: -moz-available;
   width: -webkit-fill-available;
 }
@@ -257,10 +265,6 @@ h1 {
 
 .icon-large-folder {
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAJFBMVEUAAACZmQAICAj4+Pj//5nMzGb/+/AAAAD/zJkzMwAAAP////+gebovAAAAAXRSTlMAQObYZgAAAAFiS0dECx/XxMAAAAAHdElNRQfiBhgXAy5jJ3EAAAAA1klEQVQoz42RMQ7CMBAEQ0mZIIp0/AGecJFO7kC2FKXmATxikaxUtPS48Ss5XxwnoWI7j3f3fHJV/aFa1KzOuwsRdacFHCjpthjuChbL0U261ipJnDd65IokJhCaGTCzEOZ25SAwaAUgASoOyFFzxWEsEkQGz2BskFJfHMMwWB07AVAXg/QwZscYPzHqXAVicDE4eJ47QOOoHexzhINxQRxIEVkC6I217OGLg9DLIn7qkHHEWiAvEwAdJyQlNKK3gKfcITuxZjzrO+qt2mr/3uj1z1//6AsSG3mwAQQN9wAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxOC0wNi0yNFQyMzowMzo0Ni0wNDowMFfZ8nYAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTgtMDYtMjRUMjM6MDM6NDYtMDQ6MDAmhErKAAAAAElFTkSuQmCC");
-}
-
-.icon-large-images {
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAJ1BMVEUAAACAgIAAAAD////AwMAAgIAAAIAA////AP8AgAD//wCAgACAAICCVHrWAAAAAXRSTlMAQObYZgAAAAFiS0dEAxEMTPIAAAAHdElNRQfiBhoANySLuBaXAAAAvUlEQVQoz2NgIB0IogIhBmFjFOBEpkAoDCRDBcLDw91LSkpKS2ECISXlIODuDlfhXl5eDBQpgQlElFcWmy+fWQ5XEVm+07y4cs/0CrjArpmbzW1m7twJE4ieOXv2zpOT5syEq5i0U3P2zJnamnAVJzXnZGaqTZsEV5E0U81l1apVK+DWLlm1xGuVl5cX3KVA9hIgWA1X4bF6xa5dXVta4Cq2tLR4e3t4e8AE0mAgmcwgFHFBAU4MSmiAjLgGACNod0RkBHb1AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE4LTA2LTI2VDAwOjU1OjM2LTA0OjAw+lGqagAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOC0wNi0yNlQwMDo1NTozNi0wNDowMIsMEtYAAAAASUVORK5CYII=");
 }
 
 .icon-large-sad-server {

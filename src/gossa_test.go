@@ -51,7 +51,6 @@ func postJSON(t *testing.T, url string, what string) string {
 	body, err := ioutil.ReadAll(resp.Body)
 	dieMaybe(t, err)
 	return trimSpaces(string(body))
-
 }
 
 func testDefaults(t *testing.T, url string) string {
