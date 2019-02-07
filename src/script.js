@@ -89,7 +89,7 @@ window.onClickLink = e => {
 let softStatePushed
 function pushSoftState (d) {
   if (softStatePushed) { return }
-  softStatepushed = true
+  softStatePushed = true
   history.pushState({}, '', encodeURI(d))
 }
 
@@ -289,7 +289,7 @@ function padOff () {
   saveText(() => {
     clearInterval(window.padTimer)
     window.onbeforeunload = null
-    editor.style.display = crossIcon.style.display = 'none'
+    resetView()
     softPrev()
     refresh()
   }, () => {
@@ -325,6 +325,7 @@ async function displayPad (a) {
 
   console.log('editing file', fileEdited)
   editor.style.display = crossIcon.style.display = 'block'
+  table.style.display = 'none'
   editor.focus()
   window.onbeforeunload = warningMsg
   window.padTimer = setInterval(saveText, 5000)
@@ -334,6 +335,11 @@ async function displayPad (a) {
 window.displayPad = displayPad
 
 // quit pictures or editor
+function resetView () {
+  table.style.display = 'table'
+  editor.style.display = pics.style.display = crossIcon.style.display = 'none'
+}
+
 window.quitAll = () => picsOff() || padOff()
 
 // Mkdir icon
@@ -447,6 +453,7 @@ function setImage () {
 function picsOn (href) {
   imgsIndex = allImgs.findIndex(el => el.includes(href))
   setImage()
+  table.style.display = 'none'
   crossIcon.style.display = 'block'
   pics.style.display = 'flex'
   pushSoftState(href.split('/').pop())
@@ -455,9 +462,8 @@ function picsOn (href) {
 
 function picsOff () {
   if (!isPicMode()) { return }
+  resetView()
   softPrev()
-  pics.src = ''
-  pics.style.display = crossIcon.style.display = 'none'
   return true
 }
 

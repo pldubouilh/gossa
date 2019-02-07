@@ -2,6 +2,10 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="theme-color" content="#070909">
+    <meta name="msapplication-navbutton-color" content="#070909">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="viewport" content="width=device-width">
     <title>{{.Title}}</title>
     <link href="data:image/png;base64,favicon_will_be_here" rel="icon" type="image/png" />

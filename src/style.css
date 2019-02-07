@@ -207,7 +207,7 @@ h1 {
 }
 
 #text-editor {
-  font-family: mono;
+  font-family: monospace;
   background-color: #2d3436;
   position: fixed;
   left: 0px;
@@ -218,10 +218,10 @@ h1 {
   overflow-y: auto;
   word-wrap: anywhere;
   padding: 20px;
-  margin-bottom: 20px;
   outline: none;
   width: -moz-available;
   width: -webkit-fill-available;
+  border-bottom: 20px #2d3436 solid;
 }
 
 
