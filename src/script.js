@@ -8,6 +8,7 @@ function cancelDefault (e) {
 
 const warningMsg = () => 'Leaving will interrupt transfer?\n'
 const rmMsg = () => !confirm('Remove file?\n')
+const ensureMove = () => !confirm('move items?')
 
 const barName = document.getElementById('dlBarName')
 const barPc = document.getElementById('dlBarPc')
@@ -15,12 +16,15 @@ const barDiv = document.getElementById('progress')
 const upGrid = document.getElementById('drop-grid')
 const pics = document.getElementById('pics')
 const picsHolder = document.getElementById('picsHolder')
-const icHolder = document.getElementById('icHolder')
 const manualUpload = document.getElementById('clickupload')
 const okBadge = document.getElementById('ok')
 const sadBadge = document.getElementById('sad')
 const pageTitle = document.head.querySelector('title')
 const pageH1 = document.body.querySelector('h1')
+const editor = document.getElementById('text-editor')
+const crossIcon = document.getElementById('quitAll')
+const toast = document.getElementById('toast')
+const table = document.querySelector('table')
 
 // helpers
 let allA
@@ -40,10 +44,9 @@ manualUpload.addEventListener('change', () => Array.from(manualUpload.files).for
 function browseTo (href, flickerDone, skipHistory) {
   fetch(href, { credentials: 'include' }).then(r => r.text().then(t => {
     const parsed = new DOMParser().parseFromString(t, 'text/html')
-    const table = parsed.querySelectorAll('table')[0].innerHTML
-    document.body.querySelectorAll('table')[0].innerHTML = table
+    table.innerHTML = parsed.querySelector('table').innerHTML
 
-    const title = parsed.head.querySelectorAll('title')[0].innerText
+    const title = parsed.head.querySelector('title').innerText
     // check if is current path - if so skip following
     if (pageTitle.innerText !== title) {
       pageTitle.innerText = title
@@ -63,19 +66,38 @@ function browseTo (href, flickerDone, skipHistory) {
 }
 
 window.onClickLink = e => {
-  if (e.target.innerText.endsWith('/')) {
-    storeLastArrowSrc(e.target.href)
+  storeLastArrowSrc(e.target.href)
+
+  // follow dirs
+  if (isFolder(e.target)) {
     browseTo(e.target.href)
     return false
-  } else if (picsOn(true, e.target.href)) {
+  // enable notepad if relevant
+  } else if (isTextFile(e.target.innerText) && !isEditorMode()) {
+    displayPad(e.target)
+    return false
+  // toggle picture carousel
+  } else if (isPic(e.target.href) && !isPicMode()) {
+    picsOn(e.target.href)
     return false
   }
+
+  // else just click link
   return true
+}
+
+let softStatePushed
+function pushSoftState (d) {
+  if (softStatePushed) { return }
+  softStatePushed = true
+  history.pushState({}, '', encodeURI(d))
 }
 
 const refresh = () => browseTo(location.href, true)
 
-const prevPage = (url, skipHistory) => picsOff() || browseTo(url, false, skipHistory)
+const softPrev = () => history.replaceState({}, '', decodeURI(location.href.split('/').slice(0, -1).join('/') + '/'))
+
+const prevPage = (url, skipHistory) => window.quitAll() || browseTo(url, false, skipHistory)
 
 window.onpopstate = () => prevPage(location.href, true)
 
@@ -113,6 +135,7 @@ function shouldRefresh () {
     totalUploadsSize = 0
     totalUploadedSize = []
     barDiv.style.display = 'none'
+    table.classList.remove('uploading-table')
     refresh()
   }
 }
@@ -129,6 +152,7 @@ function postFile (file, path) {
   path = decodeURI(location.pathname).slice(0, -1) + path
   window.onbeforeunload = warningMsg
 
+  table.classList.add('uploading-table')
   barDiv.style.display = 'block'
   totalUploads += 1
   totalUploadsSize += file.size
@@ -172,38 +196,42 @@ function pushEntry (entry) {
 }
 
 // Move files and folders
-const isTextEvent = e => e.dataTransfer.items[0].type === 'text/plain'
-
 const isFolder = e => e && e.href && e.innerText.endsWith('/')
 
-const resetBackgroundLinks = () => { allA.forEach(a => { a.parentElement.style.backgroundColor = 'unset' }) }
+const setBackgroundLinks = t => { t.classList.add('highlight') }
 
-const setBackgroundLinks = t => { t.style.backgroundColor = 'rgba(123, 123, 123, 0.2)' }
+const getLink = () => document.querySelector('.highlight') || {}
 
-const getLink = e => e.target.parentElement.querySelectorAll('a.list-links')[0]
+const resetBackgroundLinks = () => { try { getLink().classList.remove('highlight') } catch(e) { /* */ } } // eslint-disable-line
+
+// Not the nicest - sometimes, upon hover, firefox reports nodeName === '#text', and chrome reports nodeName === 'A'...
+const getClosestRow = t => t.nodeName === '#text' ? t.parentElement.parentElement : t.nodeName === 'A' ? t.parentElement : t
+
+let draggingSrc
 
 upGrid.ondragleave = e => {
   cancelDefault(e)
   upGrid.style.display = 'none'
 }
 
+// Handle hover
 document.ondragenter = e => {
-  if (isPicMode()) { return }
+  if (isEditorMode() || isPicMode()) { return }
   cancelDefault(e)
-
   resetBackgroundLinks()
 
-  if (isTextEvent(e) && (isFolder(e.target) || isFolder(e.target.firstChild))) {
-    const t = getLink(e)
-    if (!t) return
-    setBackgroundLinks(t.parentElement)
-  }
-
-  if (!isTextEvent(e)) {
+  // Display upload grid when uploading new elements
+  if (!draggingSrc) {
     upGrid.style.display = 'flex'
     e.dataTransfer.dropEffect = 'copy'
+  // Or highlight entry if drag and drop
+  } else if (draggingSrc) {
+    const t = getClosestRow(e.target)
+    isFolder(t.firstChild) && setBackgroundLinks(t)
   }
 }
+
+document.ondragstart = e => { draggingSrc = e.target.innerText }
 
 document.ondragend = e => resetBackgroundLinks()
 
@@ -212,26 +240,107 @@ document.ondragover = e => {
   return false
 }
 
-// Handle drop - upload or move
+// Handle drop
 document.ondrop = e => {
   cancelDefault(e)
   upGrid.style.display = 'none'
-  resetBackgroundLinks()
+  let t = getLink().firstChild
 
-  if (isTextEvent(e)) {
-    const t = e.target.classList.contains('fav') ? e.target : getLink(e)
-    if (!t || !t.innerText.endsWith('/')) return
-    e.dataTransfer.items[0].getAsString(s => {
-      const root = decodeURIComponent(s.replace(location.href, ''))
-      const dest = t.innerText + root
-      mvCall(prependPath(root), prependPath(dest), refresh)
-    })
-  } else {
+  // move to a folder
+  if (draggingSrc && t) {
+    const dest = t.innerText + draggingSrc
+    ensureMove() || mvCall(prependPath(draggingSrc), prependPath(dest), refresh)
+  // ... or upload
+  } else if (e.dataTransfer.items.length) {
     Array.from(e.dataTransfer.items).forEach(pushEntry)
   }
 
+  resetBackgroundLinks()
+  draggingSrc = null
   return false
 }
+
+// Notepad
+function saveText (cbok, cberr) {
+  const formData = new FormData()
+  formData.append(fileEdited, editor.innerText)
+  fetch(location.origin + '/post', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+    headers: new Headers({ 'gossa-path': encodeURIComponent(decodeURI(location.pathname)) })
+  }).then(() => {
+    toast.style.display = 'none'
+    cbok && cbok()
+  }).catch(() => {
+    toast.style.display = 'block'
+    cberr && cberr()
+  })
+}
+
+const isEditorMode = () => editor.style.display === 'block'
+const textTypes = ['.txt', '.rtf', '.md', '.log']
+const isTextFile = src => src && textTypes.find(type => src.toLocaleLowerCase().includes(type))
+let fileEdited
+
+function padOff () {
+  if (!isEditorMode()) { return }
+
+  saveText(() => {
+    clearInterval(window.padTimer)
+    window.onbeforeunload = null
+    resetView()
+    softPrev()
+    refresh()
+  }, () => {
+    alert('cant save!\r\nleave window open to resume saving\r\nwhen connection back up')
+  })
+
+  return true
+}
+
+async function displayPad (a) {
+  if (a) {
+    try {
+      fileEdited = a.innerText
+      const f = await fetch(a.href, {
+        credentials: 'include',
+        headers: new Headers({
+          'pragma': 'no-cache',
+          'cache-control': 'no-cache'
+        })
+      })
+      editor.innerText = await f.text()
+    } catch (error) {
+      return alert('cant read file')
+    }
+  } else {
+    fileEdited = prompt('new filename', '')
+    if (!fileEdited) { return }
+    fileEdited = isTextFile(fileEdited) ? fileEdited : fileEdited + '.txt'
+    editor.innerText = ''
+    saveText()
+    storeLastArrowSrc(location.href + fileEdited)
+  }
+
+  console.log('editing file', fileEdited)
+  editor.style.display = crossIcon.style.display = 'block'
+  table.style.display = 'none'
+  editor.focus()
+  window.onbeforeunload = warningMsg
+  window.padTimer = setInterval(saveText, 5000)
+  pushSoftState(fileEdited)
+}
+
+window.displayPad = displayPad
+
+// quit pictures or editor
+function resetView () {
+  table.style.display = 'table'
+  editor.style.display = pics.style.display = crossIcon.style.display = 'none'
+}
+
+window.quitAll = () => picsOff() || padOff()
 
 // Mkdir icon
 window.mkdirBtn = function () {
@@ -341,31 +450,22 @@ function setImage () {
   history.replaceState({}, '', encodeURI(src.split('/').pop()))
 }
 
-function picsOn (ifImgSelected, href) {
-  href = href || getASelected().href
-
-  if (isPicMode() || (ifImgSelected && !isPic(href))) {
-    return false
-  }
-
-  if (isPic(href)) {
-    imgsIndex = allImgs.findIndex(el => el.includes(href))
-  }
-
+function picsOn (href) {
+  imgsIndex = allImgs.findIndex(el => el.includes(href))
   setImage()
+  table.style.display = 'none'
+  crossIcon.style.display = 'block'
   pics.style.display = 'flex'
+  pushSoftState(href.split('/').pop())
   return true
 }
 
-function picsOff (skip) {
+function picsOff () {
   if (!isPicMode()) { return }
-
-  history.replaceState({}, '', encodeURI(location.href.split('/').slice(0, -1).join('/') + '/'))
-  pics.style.display = 'none'
+  resetView()
+  softPrev()
   return true
 }
-
-window.picsToggle = () => isPicMode() ? picsOff() : picsOn()
 
 function picsNav (down) {
   if (!isPicMode()) { return false }
@@ -384,11 +484,11 @@ function picsNav (down) {
 let cuts = []
 function onPaste () {
   if (!cuts.length) { return refresh() }
+  const a = getASelected()
   const root = cuts.pop()
-  const pwd = decodeURIComponent(location.pathname)
-  const isFolderDest = getASelected().innerText.endsWith('/')
   const filename = root.split('/').pop()
-  const dest = isFolderDest ? pwd + getASelected().innerText : pwd
+  const pwd = decodeURIComponent(location.pathname)
+  const dest = isFolder(a) ? pwd + a.innerText : pwd
   mvCall(root, dest + filename, onPaste)
 }
 
@@ -419,48 +519,63 @@ function setCursorToClosestTyped () {
 }
 
 document.body.addEventListener('keydown', e => {
+  if (e.code === 'Escape') {
+    return resetBackgroundLinks() || picsOff() || padOff()
+  }
+
+  if (isEditorMode()) { return }
+
+  if (isPicMode()) {
+    switch (e.code) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        return prevent(e) || picsNav(false)
+
+      case 'Enter':
+      case 'Tab':
+      case 'ArrowRight':
+      case 'ArrowDown':
+        return prevent(e) || picsNav(true)
+    }
+    return
+  }
+
   switch (e.code) {
     case 'Tab':
     case 'ArrowDown':
-      return prevent(e) || picsNav(true) || moveArrow(true)
+      return prevent(e) || moveArrow(true)
 
     case 'ArrowUp':
-      return prevent(e) || picsNav(false) || moveArrow(false)
+      return prevent(e) || moveArrow(false)
 
     case 'Enter':
     case 'ArrowRight':
-      return prevent(e) || picsOn(true) || picsNav(true) || getASelected().click()
+      return prevent(e) || getASelected().click()
 
     case 'ArrowLeft':
-      return prevent(e) || picsNav(false) || prevPage(location.href + '../')
-
-    case 'Escape':
-      return prevent(e) || resetBackgroundLinks() || picsOff()
+      return prevent(e) || prevPage(location.href + '../')
   }
 
   // Ctrl keys
   if (e.ctrlKey || e.metaKey) {
     switch (e.code) {
       case 'KeyC':
-        return prevent(e) || isPicMode() || cpPath()
+        return prevent(e) || cpPath()
 
       case 'KeyX':
         return prevent(e) || onCut()
 
       case 'KeyV':
-        return prevent(e) || !confirm('move items?') || onPaste()
+        return prevent(e) || ensureMove() || onPaste()
 
       case 'Backspace':
-        return prevent(e) || isPicMode() || window.rm(e)
+        return prevent(e) || window.rm(e)
 
       case 'KeyE':
-        return prevent(e) || isPicMode() || window.rename(e)
+        return prevent(e) || window.rename(e)
 
       case 'KeyD':
-        return prevent(e) || isPicMode() || window.mkdirBtn()
-
-      case 'KeyB':
-        return prevent(e) || toggleTheme() // eslint-disable-line
+        return prevent(e) || window.mkdirBtn()
     }
   }
 
@@ -476,9 +591,8 @@ document.body.addEventListener('keydown', e => {
 function init () {
   allA = Array.from(document.querySelectorAll('a.list-links'))
   allImgs = allA.map(el => el.href).filter(isPic)
-  document.getElementsByClassName('icon-large-images')[0].style.display = allImgs.length > 0 ? 'inline-block' : 'none'
 
-  imgsIndex = 0
+  imgsIndex = softStatePushed = 0
   restoreCursorPos()
   console.log('Browsed to ' + location.href)
 

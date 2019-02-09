@@ -2,36 +2,32 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="theme-color" content="#070909">
+    <meta name="msapplication-navbutton-color" content="#070909">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="viewport" content="width=device-width">
     <title>{{.Title}}</title>
     <link href="data:image/png;base64,favicon_will_be_here" rel="icon" type="image/png" />
     <style type="text/css">css_will_be_here</style>
-    <style type="text/css" id="theme">theme_will_be_here</style>
-    <script>
-        const theme = document.getElementById('theme')
-        const themeNow = () => localStorage.getItem('theme')
-        const setTheme = () => { theme.disabled = themeNow() === 'regular' }
-        const toggleTheme = () => localStorage.setItem('theme', (themeNow() === 'regular' ? 'alt' : 'regular')) || setTheme()
-        setTheme()
-    </script>
     <script>window.onload = function () { js_will_be_here }</script>
 </head>
 
 <body>
-    <div id="drop-grid"> Drop here to upload </div>
+    <div style="display: none;" onclick="window.quitAll()" id="quitAll"><i style="display: none;" id="toast">cant reach server</i></div>
+    <div style="display: none;" contenteditable="true" id="text-editor"></div>
+    <div id="drop-grid"></div>
     <input type="file" id="clickupload" style="display:none"/>
 
     <h1>.{{.Title}}</h1>
 
     <div id="icHolder">
         <div style="display:none;" onclick="document.getElementById('clickupload').click()" class="ic icon-large-upload manualUp"></div>
-        <div style="display:none;" class="ic icon-large-images" onclick="window.picsToggle()"></div>
+        <div onclick="window.displayPad()" class="ic icon-large-pad"></div>
         <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>
     </div>
 
-    <div id="pics" style="display:none;">
-        <div onclick="window.picsToggle()" id="picsToggleCinema"></div> <img onclick="window.picsNav()" id="picsHolder" />
-    </div>
+    <div id="pics" style="display:none;"> <img onclick="window.picsNav()" id="picsHolder" /></div>
 
     <table>
     {{range .RowsFolders}}
