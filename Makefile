@@ -18,7 +18,7 @@ embed:
 
 ci:
 	timeout 10 make run &
-	cp src/gossa_test.go . && sleep 5 && go test; rm gossa gossa_test.go
+	cp src/gossa_test.go . && sleep 5 && go test
 
 ci-watch:
 	ls src/* | entr -rc make ci
@@ -39,6 +39,7 @@ build-all:
 
 clean:
 	-rm gossa.go
+	-rm gossa_test.go
 	-rm gossa
 	-rm gossa-linux64
 	-rm gossa-linux-arm
