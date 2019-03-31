@@ -1,8 +1,11 @@
-run:
+build:
 	make embed
 	go vet && go fmt
 	CGO_ENABLED=0 go build gossa.go
 	rm gossa.go
+
+run:
+	make build
 	./gossa fixture
 
 watch:

@@ -22,7 +22,7 @@ built blobs are available on the [release page](https://github.com/pldubouilh/go
 
 ### run
 ```sh
-# build
+# build (or download release from github)
 make
 
 # run
@@ -46,6 +46,7 @@ make
 |Ctrl/Meta + C | copy URL to clipboard|
 |Ctrl/Meta + E | rename file/folder|
 |Ctrl/Meta + Del | delete file/folder|
+|Ctrl/Meta + U | upload new file/folder|
 |Ctrl/Meta + D | create a new directory|
 |Ctrl/Meta + X | cut selected path|
 |Ctrl/Meta + V | paste previously selected paths to directory|
