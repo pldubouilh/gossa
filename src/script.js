@@ -576,6 +576,9 @@ document.body.addEventListener('keydown', e => {
 
       case 'KeyD':
         return prevent(e) || window.mkdirBtn()
+
+      case 'KeyU':
+        return prevent(e) || manualUpload.click()
     }
   }
 
