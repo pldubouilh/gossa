@@ -164,7 +164,7 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	} else if payload.Call == "mv" {
 		err = os.Rename(payload.Args[0], payload.Args[1])
 	} else if payload.Call == "rm" {
-		err = os.Remove(payload.Args[0])
+		err = os.RemoveAll(payload.Args[0])
 	}
 
 	logVerb("RPC", err, payload)

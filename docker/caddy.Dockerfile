@@ -6,7 +6,7 @@ RUN curl -L -o caddy.tar.gz "https://github.com/mholt/caddy/releases/download/v0
 RUN tar xvzf caddy.tar.gz && mv caddy /caddy
 
 # download and prepare gossa
-RUN curl -L -o /gossa "https://github.com/pldubouilh/gossa/releases/download/v0.0.6/gossa-linux64"
+RUN curl -L -o /gossa "https://github.com/pldubouilh/gossa/releases/download/v0.0.7/gossa-linux64"
 RUN chmod +x /gossa /caddy
 
 # Caddy config:

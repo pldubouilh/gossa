@@ -122,7 +122,7 @@ let totalUploads = 0
 let totalUploadsSize = 0
 let totalUploadedSize = []
 
-const dupe = test => allA.find(a => a.innerText.replace('/', '') === test)
+const dupe = test => allA.find(a => a.innerHTML.replace('/', '') === test)
 const isDupe = t => dupe(t) ? alert(t + ' already already exists') || true : false
 
 function shouldRefresh () {
@@ -231,7 +231,7 @@ document.ondragenter = e => {
   }
 }
 
-document.ondragstart = e => { draggingSrc = e.target.innerText }
+document.ondragstart = e => { draggingSrc = e.target.innerHTML }
 
 document.ondragend = e => resetBackgroundLinks()
 
@@ -248,7 +248,7 @@ document.ondrop = e => {
 
   // move to a folder
   if (draggingSrc && t) {
-    const dest = t.innerText + draggingSrc
+    const dest = t.innerHTML + draggingSrc
     ensureMove() || mvCall(prependPath(draggingSrc), prependPath(dest), refresh)
   // ... or upload
   } else if (e.dataTransfer.items.length) {
@@ -302,7 +302,7 @@ function padOff () {
 async function displayPad (a) {
   if (a) {
     try {
-      fileEdited = a.innerText
+      fileEdited = a.innerHTML
       const f = await fetch(a.href, {
         credentials: 'include',
         headers: new Headers({
@@ -367,7 +367,7 @@ window.rename = (e, commit) => {
     return
   }
 
-  const orig = e.key ? getASelected().innerText : getBtnA(e).innerText
+  const orig = e.key ? getASelected().innerHTML : getBtnA(e).innerHTML
   const chg = prompt('rename to', orig)
   if (chg && !isDupe(chg)) {
     mvCall(prependPath(orig), prependPath(chg), refresh)
@@ -488,7 +488,7 @@ function onPaste () {
   const root = cuts.pop()
   const filename = root.split('/').pop()
   const pwd = decodeURIComponent(location.pathname)
-  const dest = isFolder(a) ? pwd + a.innerText : pwd
+  const dest = isFolder(a) ? pwd + a.innerHTML : pwd
   mvCall(root, dest + filename, onPaste)
 }
 
@@ -576,6 +576,9 @@ document.body.addEventListener('keydown', e => {
 
       case 'KeyD':
         return prevent(e) || window.mkdirBtn()
+
+      case 'KeyU':
+        return prevent(e) || manualUpload.click()
     }
   }
 
