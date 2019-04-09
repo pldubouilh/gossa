@@ -16,6 +16,8 @@ const barDiv = document.getElementById('progress')
 const upGrid = document.getElementById('drop-grid')
 const pics = document.getElementById('pics')
 const picsHolder = document.getElementById('picsHolder')
+const videos = document.getElementById('videos')
+const videosHolder = document.getElementById('videosHolder')
 const manualUpload = document.getElementById('clickupload')
 const okBadge = document.getElementById('ok')
 const sadBadge = document.getElementById('sad')
@@ -30,6 +32,8 @@ const table = document.querySelector('table')
 let allA
 let imgsIndex
 let allImgs
+let videosIndex
+let allVideos
 const decode = a => decodeURIComponent(a).replace(location.origin, '')
 const getArrowSelected = () => document.querySelector('.arrow-selected')
 const getASelected = () => !getArrowSelected() ? false : getArrowSelected().parentElement.parentElement.querySelectorAll('a')[0]
@@ -80,8 +84,12 @@ window.onClickLink = e => {
   } else if (isPic(e.target.href) && !isPicMode()) {
     picsOn(e.target.href)
     return false
+    // toggle videos mode
+  } else if (isVideo(e.target.href) && !isVideoMode()) {
+    videosOn(e.target.href)
+    return false
   }
-
+  
   // else just click link
   return true
 }
@@ -337,10 +345,10 @@ window.displayPad = displayPad
 // quit pictures or editor
 function resetView () {
   table.style.display = 'table'
-  editor.style.display = pics.style.display = crossIcon.style.display = 'none'
+  editor.style.display = pics.style.display = videos.style.display = crossIcon.style.display = 'none'
 }
 
-window.quitAll = () => picsOff() || padOff()
+window.quitAll = () => picsOff() || videosOff() || padOff()
 
 // Mkdir icon
 window.mkdirBtn = function () {
@@ -480,6 +488,71 @@ function picsNav (down) {
   return true
 }
 
+
+// Videos carousel
+const videosTypes = ['.mp4', '.webm', '.ogv']
+const isVideo = src => src && videosTypes.find(type => src.toLocaleLowerCase().includes(type))
+const isVideoMode = () => videos.style.display === 'flex'
+window.videosNav = () => videosNav(true)
+
+window.onunload = function () {
+  window.localStorage.setItem(videosHolder.src, videosHolder.currentTime)
+}
+
+function setVideo() {
+  videosHolder.pause()
+  // If there is a current one save it at the position
+  if (videosHolder.src !== "") {
+    window.localStorage.setItem(videosHolder.src, videosHolder.currentTime)
+  }
+
+  const src = allVideos[videosIndex]
+  videosHolder.src = src
+  storeLastArrowSrc(src)
+  restoreCursorPos()
+  history.replaceState({}, '', encodeURI(src.split('/').pop()))
+
+  const currentTime = window.localStorage.getItem(videosHolder.src)
+  if (currentTime) {
+    videosHolder.currentTime = currentTime
+  }
+
+  videosHolder.oncanplay = function() {
+    videosHolder.play()
+    videosHolder.oncanplay = null
+  };
+}
+
+function videosOn (href) {
+  videosIndex = allVideos.findIndex(el => el.includes(href))
+  setVideo()
+  table.style.display = 'none'
+  crossIcon.style.display = 'block'
+  videos.style.display = 'flex'
+  pushSoftState(href.split('/').pop())
+  return true
+}
+
+function videosOff () {
+  if (!isVideoMode()) { return }
+  resetView()
+  softPrev()
+  return true
+}
+
+function videosNav (down) {
+  if (!isVideoMode()) { return false }
+
+  if (down) {
+    videosIndex = allVideos[videosIndex + 1] ? videosIndex + 1 : 0
+  } else {
+    videosIndex = allVideos[videosIndex - 1] ? videosIndex - 1 : allVideos.length - 1
+  }
+
+  setVideo()
+  return true
+}
+
 // Paste handler
 let cuts = []
 function onPaste () {
@@ -520,7 +593,7 @@ function setCursorToClosestTyped () {
 
 document.body.addEventListener('keydown', e => {
   if (e.code === 'Escape') {
-    return resetBackgroundLinks() || picsOff() || padOff()
+    return resetBackgroundLinks() || picsOff() || videosOff() || padOff()
   }
 
   if (isEditorMode()) { return }
@@ -536,6 +609,21 @@ document.body.addEventListener('keydown', e => {
       case 'ArrowRight':
       case 'ArrowDown':
         return prevent(e) || picsNav(true)
+    }
+    return
+  }
+
+  if (isVideoMode()) {
+    switch (e.code) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        return prevent(e) || videosNav(false)
+
+      case 'Enter':
+      case 'Tab':
+      case 'ArrowRight':
+      case 'ArrowDown':
+        return prevent(e) || videosNav(true)
     }
     return
   }
@@ -594,8 +682,9 @@ document.body.addEventListener('keydown', e => {
 function init () {
   allA = Array.from(document.querySelectorAll('a.list-links'))
   allImgs = allA.map(el => el.href).filter(isPic)
+  allVideos = allA.map(el => el.href).filter(isVideo)
 
-  imgsIndex = softStatePushed = 0
+  imgsIndex = videosIndex = softStatePushed = 0
   restoreCursorPos()
   console.log('Browsed to ' + location.href)
 

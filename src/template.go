@@ -29,6 +29,8 @@
 
     <div id="pics" style="display:none;"> <img onclick="window.picsNav()" id="picsHolder" /></div>
 
+    <div id="videos" style="display:none;"> <video controls id="videosHolder"></video></div>
+
     <table>
     {{range .RowsFolders}}
         <tr>

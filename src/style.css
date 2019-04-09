@@ -248,6 +248,30 @@ h1 {
   image-orientation: from-image;
 }
 
+
+#videos {
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  justify-content:center;
+  align-items:center;
+  position: fixed;
+  background-color: #000;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  overflow: hidden;
+  z-index: 99;
+}
+
+#videosHolder {
+  height: 100%;
+  width: 100%;
+  cursor: pointer;
+  object-fit: contain;
+  image-orientation: from-image;
+}
+
 @keyframes fade {
   0%   { opacity:0; }
   20%  { opacity:1; }
