@@ -63,3 +63,21 @@ docker build -t gossa -f download .
 # run
 sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 gossa
 ```
+
+### docker-compose
+```
+version: '2'
+
+services:
+  gossa:
+    image: pldubouilh/gossa:v0.0.6
+    container_name: gossa
+    restart: always
+    ports:
+      - 8001:8001
+    volumes:
+      - gossa:/shared
+
+volumes:
+  gossa: {}
+```
