@@ -1,33 +1,30 @@
 build:
-	make embed
+	cp src/gossa.go gossa.go
+	make -C gossa-ui/
 	go vet && go fmt
 	CGO_ENABLED=0 go build gossa.go
 	rm gossa.go
 
 run:
 	make build
-	./gossa fixture
+	./gossa test-fixture
 
 watch:
 	ls src/** | entr -rc make run
 
-embed:
-	echo "embedding css and js into binary"
-	cp src/main.go gossa.go
-	perl -pe 's/template_will_be_here/`cat src\/template.go`/ge' -i gossa.go
-	perl -pe 's/css_will_be_here/`cat src\/style.css`/ge' -i gossa.go
-	perl -pe 's/js_will_be_here/`cat src\/script.js`/ge' -i gossa.go
-	perl -pe 's/favicon_will_be_here/`base64 -w0 src\/favicon.png`/ge' -i gossa.go
-
+# ci & ci debug
 ci:
 	timeout 10 make run &
 	cp src/gossa_test.go . && sleep 5 && go test
+	rm gossa_test.go
 
 ci-watch:
 	ls src/* | entr -rc make ci
 
+# build / cleanup
 build-all:
-	make embed
+	cp src/gossa.go gossa.go
+	make -C gossa-ui/
 	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build gossa.go
 	mv gossa gossa-linux64
 	env GOOS=linux GOARCH=arm go build gossa.go
