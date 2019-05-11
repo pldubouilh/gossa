@@ -10,31 +10,31 @@ gossa-windows.exe
 gossa_test.go
 
 .vscode
-fixture/*
-fixture/*/*
-!fixture/compress
-!fixture/compress/foo*
-!fixture/gzip
-!fixture/gzip/fake_ecstatic*
-!fixture/gzip/real_ecstatic
-!fixture/curimit@gmail.com (40%)
-!fixture/curimit@gmail.com (40%)/test.html
-!fixture/show-dir$$href_encoding$$
-!fixture/show-dir$$href_encoding$$/aname+aplus.txt
-!fixture/subdir
-!fixture/subdir/e.html
-!fixture/subdir_with space
-!fixture/subdir_with space/file_with space.html
-!fixture/中文
-!fixture/中文/檔案.html
-!fixture/404*
-!fixture/b.txt
-!fixture/custom_mime_type*
-!fixture/f_f
-!fixture/hols
-!fixture/hols/c.js
-!fixture/hols/adler-2872995_1920.jpg
-!fixture/hols/elephant-1822636_1920.jpg
-!fixture/hols/glasgow.jpg
-!fixture/hols/landscape-540116_1920.jpg
-!fixture/hols/scotland-1761292_1920.jpg
+test-fixture/*
+test-fixture/*/*
+!test-fixture/compress
+!test-fixture/compress/foo*
+!test-fixture/gzip
+!test-fixture/gzip/fake_ecstatic*
+!test-fixture/gzip/real_ecstatic
+!test-fixture/curimit@gmail.com (40%)
+!test-fixture/curimit@gmail.com (40%)/test.html
+!test-fixture/show-dir$$href_encoding$$
+!test-fixture/show-dir$$href_encoding$$/aname+aplus.txt
+!test-fixture/subdir
+!test-fixture/subdir/e.html
+!test-fixture/subdir_with space
+!test-fixture/subdir_with space/file_with space.html
+!test-fixture/中文
+!test-fixture/中文/檔案.html
+!test-fixture/404*
+!test-fixture/b.txt
+!test-fixture/custom_mime_type*
+!test-fixture/f_f
+!test-fixture/hols
+!test-fixture/hols/c.js
+!test-fixture/hols/adler-2872995_1920.jpg
+!test-fixture/hols/elephant-1822636_1920.jpg
+!test-fixture/hols/glasgow.jpg
+!test-fixture/hols/landscape-540116_1920.jpg
+!test-fixture/hols/scotland-1761292_1920.jpg
