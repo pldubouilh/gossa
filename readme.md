@@ -9,7 +9,7 @@ gossa
 
 ### features
   * 🔍 files/directories browser
-  * 📩 drag-and-drop file uploader
+  * 📩 drag-and-drop file/directory uploader
   * 🗺️ files handling - move/rename/delete
   * 📸 picture browser
   * 📽️ video streaming from the browser
@@ -53,13 +53,9 @@ make
 |\<any letter\> | search|
 
 ### using with docker
-multiple dockerfiles are provided in the `docker` folder. to simply get started just have a look below
+a few docker/docker-compose files are provided in the [docker folder](https://github.com/pldubouilh/gossa/tree/master/docker). release images are also pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gossa), e.g. :
 
 ```sh
-# build
-cd docker
-docker build -t gossa -f download .
-
-# run
-sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 gossa
+# pull from dockerhub and run
+sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
 ```

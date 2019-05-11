@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  gossa-server:
+    image: pldubouilh/gossa
+    container_name: gossa
+    restart: always
+    ports:
+      - 8001:8001
+    volumes:
+      - ~/to-share:/shared
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.port=8001"
+#      - "traefik.backend=gossa"
+#      - "traefik.frontend.rule=Host:${GOSSA}.${DOMAIN}"
