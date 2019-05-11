@@ -1,8 +1,14 @@
-```sh
-# download latest gossa release
-docker build -t gossa -f download.Dockerfile .
+the master branch is automatically built and pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gossa) under `pldubouilh/gossa`.
 
-# ... or build gossa within a build container, needs to be ran within the sources, ../ from here
+```sh
+# pull from dockerhub and run
+sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
+```
+
+if you prefer building the image yourself :
+
+```sh
+# build gossa within a build container, needs to be ran within the sources, ../ from here
 docker build -t gossa -f docker/build.Dockerfile .
 
 # and to run it simply
@@ -20,3 +26,4 @@ docker build -t gossa -f caddy.Dockerfile .
 sudo docker run -v ~/LocalDirToShare:/shared --net=host gossa
 ```
 
+a docker-compose example image is also provided. running docker compose should be straightforward : `docker-compose up .` have a look in `docker-compose.yml` for further configuration.
