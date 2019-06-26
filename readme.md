@@ -3,7 +3,10 @@ gossa
 
 ![e](https://user-images.githubusercontent.com/760637/52522293-942fa880-2c83-11e9-9f79-0a5b922bcc7f.gif)
 
-[![Build Status](https://travis-ci.org/pldubouilh/gossa.svg?branch=master)](https://travis-ci.org/pldubouilh/gossa)
+[![build status](https://img.shields.io/travis/pldubouilh/gossa.svg?logo=travis)](https://travis-ci.org/pldubouilh/gossa)
+[![docker build status](https://img.shields.io/docker/cloud/build/pldubouilh/gossa.svg?logo=docker)](https://hub.docker.com/r/pldubouilh/gossa)
+[![docker pulls](https://img.shields.io/docker/pulls/pldubouilh/gossa.svg?logo=docker)](https://hub.docker.com/r/pldubouilh/gossa)
+[![github downloads](https://img.shields.io/github/downloads/pldubouilh/gossa/total.svg?logo=github)](https://github.com/pldubouilh/gossa/releases)
 
 🎶 A fast and simple webserver for your files, that's dependency-free and with under 210 lines for the server code, easily code-reviewable.
 
