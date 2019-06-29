@@ -22,7 +22,7 @@ var host = flag.String("h", "127.0.0.1", "host to listen to")
 var port = flag.String("p", "8001", "port to listen to")
 var verb = flag.Bool("verb", true, "verbosity")
 var skipHidden = flag.Bool("k", true, "skip hidden files")
-var initPath = ""
+var initPath = "."
 
 var fs http.Handler
 var page, _ = template.New("pageTemplate").Parse(`template_will_be_here`)
@@ -184,9 +184,7 @@ func checkPath(p string) (string, error) {
 
 func main() {
 	flag.Parse()
-	if len(flag.Args()) == 0 {
-		initPath = "."
-	} else {
+	if len(flag.Args()) > 0 {
 		initPath = flag.Args()[0]
 	}
 

@@ -53,7 +53,7 @@ func postJSON(t *testing.T, url string, what string) string {
 	return trimSpaces(string(body))
 }
 
-func testDefaults(t *testing.T, url string) string {
+func fetchAndTestDefault(t *testing.T, url string) string {
 	bodyStr := get(t, url)
 
 	if !strings.Contains(bodyStr, `<title>/</title>`) {
@@ -76,7 +76,7 @@ func testDefaults(t *testing.T, url string) string {
 		t.Fatal("error 中文 folder")
 	}
 
-	if !strings.Contains(bodyStr, `<tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-types icon-blank"></i></td> <td class="file-size"><code>211.0B</code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="custom_mime_type.types">custom_mime_type.types</a></td> </tr>`) {
+	if !strings.Contains(bodyStr, `href="custom_mime_type.types">custom_mime_type.types</a>`) {
 		t.Fatal("error row custom_mime_type")
 	}
 
@@ -90,12 +90,12 @@ func TestGetFolder(t *testing.T) {
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test fetching default path")
-	testDefaults(t, "http://127.0.0.1:8001/")
+	fetchAndTestDefault(t, "http://127.0.0.1:8001/")
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test fetching an invalid path - redirected to root")
-	testDefaults(t, "http://127.0.0.1:8001/../../")
-	testDefaults(t, "http://127.0.0.1:8001/hols/../../")
+	fetchAndTestDefault(t, "http://127.0.0.1:8001/../../")
+	fetchAndTestDefault(t, "http://127.0.0.1:8001/hols/../../")
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test fetching a regular file")
@@ -118,8 +118,8 @@ func TestGetFolder(t *testing.T) {
 		t.Fatal("mkdir rpc errored")
 	}
 
-	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if !strings.Contains(bodyStr, `<tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="AAA">AAA/</a></td> </tr>`) {
+	bodyStr = fetchAndTestDefault(t, "http://127.0.0.1:8001/")
+	if !strings.Contains(bodyStr, `href="AAA">AAA/</a>`) {
 		t.Fatal("mkdir rpc folder not created")
 	}
 
@@ -137,9 +137,9 @@ func TestGetFolder(t *testing.T) {
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test post file")
-	path = "%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1" // "하 하" encoded
-	payload = "12 하"
-	bodyStr = postDummyFile(t, "%2F"+path, payload)
+	path = "%2F%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1" // "하 하" encoded
+	payload = "123 하"
+	bodyStr = postDummyFile(t, path, payload)
 	if !strings.Contains(bodyStr, `ok`) {
 		t.Fatal("post file errored")
 	}
@@ -149,14 +149,14 @@ func TestGetFolder(t *testing.T) {
 		t.Fatal("post file errored reaching new file")
 	}
 
-	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if !strings.Contains(bodyStr, `<tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-하 하 icon-blank"></i></td> <td class="file-size"><code>9.0B</code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1">하 하</a></td> </tr>`) {
+	bodyStr = fetchAndTestDefault(t, "http://127.0.0.1:8001/")
+	if !strings.Contains(bodyStr, `href="%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1">하 하</a>`) {
 		t.Fatal("post file errored checking new file row")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test post file incorrect path")
-	bodyStr = postDummyFile(t, "%2E%2E%2F"+path, payload)
+	bodyStr = postDummyFile(t, "%2E%2E"+path, payload)
 	if !strings.Contains(bodyStr, `err`) {
 		t.Fatal("post file incorrect path didnt errored")
 	}
@@ -168,8 +168,8 @@ func TestGetFolder(t *testing.T) {
 		t.Fatal("mv rpc errored")
 	}
 
-	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if strings.Contains(bodyStr, `<tr> <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="AAA">AAA/</a></td> </tr>`) {
+	bodyStr = fetchAndTestDefault(t, "http://127.0.0.1:8001/")
+	if strings.Contains(bodyStr, `href="AAA">AAA/</a></td> </tr>`) {
 		t.Fatal("mv rpc folder not moved")
 	}
 

@@ -9,19 +9,17 @@ run:
 	make build
 	./gossa test-fixture
 
-watch:
-	ls src/** | entr -rc make run
-
-# ci & ci debug
 ci:
 	timeout 10 make run &
 	cp src/gossa_test.go . && sleep 5 && go test
 	rm gossa_test.go
 
-ci-watch:
-	ls src/* | entr -rc make ci
+watch:
+	ls src/* gossa-ui/* | entr -rc make run
 
-# build / cleanup
+ci-watch:
+	ls src/* gossa-ui/* | entr -rc make ci
+
 build-all:
 	cp src/gossa.go gossa.go
 	make -C gossa-ui/
