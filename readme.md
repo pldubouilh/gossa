@@ -8,9 +8,10 @@ gossa
 [![docker pulls](https://img.shields.io/docker/pulls/pldubouilh/gossa.svg?logo=docker)](https://hub.docker.com/r/pldubouilh/gossa)
 [![github downloads](https://img.shields.io/github/downloads/pldubouilh/gossa/total.svg?logo=github)](https://github.com/pldubouilh/gossa/releases)
 
-🎶 A fast and simple webserver for your files, that's dependency-free and with under 210 lines for the server code, easily code-reviewable.
+a fast and simple webserver for your files, that's dependency-free and with only 210 lines of code, easy to review.
 
-### features
+a [simple UI](https://github.com/pldubouilh/gossa-ui) comes as default, featuring :
+
   * 🔍 files/directories browser
   * 📩 drag-and-drop file/directory uploader
   * 🗺️ files handling - move/rename/delete
@@ -20,16 +21,12 @@ gossa
   * ⌨️ keyboard shortcuts
   * 🥂 speed - showed rates above 100MB/s
 
-### built blobs
-built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases).
+### build
+built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases) - or simply `make build` this repo
 
-### run
+### usage
 ```sh
-# build (or download release from github)
-make
-
-# run
-./gossa -h 192.168.100.33 ~/storage
+% ./gossa -h 192.168.100.33 ~/storage
 ```
 
 ### ui shortcuts
@@ -60,5 +57,5 @@ a few docker/docker-compose files are provided in the [docker folder](https://gi
 
 ```sh
 # pull from dockerhub and run
-sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
+% sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
 ```

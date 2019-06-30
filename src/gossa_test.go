@@ -53,9 +53,7 @@ func postJSON(t *testing.T, url string, what string) string {
 	return trimSpaces(string(body))
 }
 
-var mainPage = `<body> <div style="display: none;" onclick="window.quitAll()" id="quitAll"><i style="display: none;" id="toast">cant reach server</i></div> <div style="display: none;" contenteditable="true" id="text-editor"></div> <div id="drop-grid"></div> <input type="file" id="clickupload" style="display:none"/> <h1>./</h1> <div id="icHolder"> <div style="display:none;" onclick="document.getElementById('clickupload').click()" class="ic icon-large-upload manualUp"></div> <div onclick="window.displayPad()" class="ic icon-large-pad"></div> <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div> </div> <div id="pics" style="display:none;"> <img onclick="window.picsNav()" id="picsHolder" /></div> <table> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="compress">compress/</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="curimit@gmail.com%20%2840%25%29">curimit@gmail.com (40%)/</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="gzip">gzip/</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="hols">hols/</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="show-dir$$href_encoding$$">show-dir$$href_encoding$$/</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="subdir">subdir/</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="subdir_with%20space">subdir_with space/</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="%E4%B8%AD%E6%96%87">中文/</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-html icon-blank"></i></td> <td class="file-size"><code>13.0B</code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="404.html">404.html</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-gz icon-blank"></i></td> <td class="file-size"><code>40.0B</code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="404.html.gz">404.html.gz</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-txt icon-blank"></i></td> <td class="file-size"><code>5.0B</code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="b.txt">b.txt</a></td> </tr> <tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-types icon-blank"></i></td> <td class="file-size"><code>211.0B</code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="custom_mime_type.types">custom_mime_type.types</a></td> </tr> </table> </body> <div id="progress" style="display:none;"> <span id="dlBarName"></span> <div id="dlBarPc">1%</div> </div> <div id="ok" class="notif icon-large-ok"></div> <div id="sad" class="notif icon-large-sad-server"></div> </html>`
-
-func testDefaults(t *testing.T, url string) string {
+func fetchAndTestDefault(t *testing.T, url string) string {
 	bodyStr := get(t, url)
 
 	if !strings.Contains(bodyStr, `<title>/</title>`) {
@@ -78,7 +76,7 @@ func testDefaults(t *testing.T, url string) string {
 		t.Fatal("error 中文 folder")
 	}
 
-	if !strings.Contains(bodyStr, `<tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-types icon-blank"></i></td> <td class="file-size"><code>211.0B</code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="custom_mime_type.types">custom_mime_type.types</a></td> </tr>`) {
+	if !strings.Contains(bodyStr, `href="custom_mime_type.types">custom_mime_type.types</a>`) {
 		t.Fatal("error row custom_mime_type")
 	}
 
@@ -92,16 +90,12 @@ func TestGetFolder(t *testing.T) {
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test fetching default path")
-	testDefaults(t, "http://127.0.0.1:8001/")
-	bodyStr = get(t, "http://127.0.0.1:8001/")
-	if !strings.Contains(bodyStr, mainPage) {
-		t.Fatal("fetching default path errored")
-	}
+	fetchAndTestDefault(t, "http://127.0.0.1:8001/")
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test fetching an invalid path - redirected to root")
-	testDefaults(t, "http://127.0.0.1:8001/../../")
-	testDefaults(t, "http://127.0.0.1:8001/hols/../../")
+	fetchAndTestDefault(t, "http://127.0.0.1:8001/../../")
+	fetchAndTestDefault(t, "http://127.0.0.1:8001/hols/../../")
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test fetching a regular file")
@@ -124,8 +118,8 @@ func TestGetFolder(t *testing.T) {
 		t.Fatal("mkdir rpc errored")
 	}
 
-	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if !strings.Contains(bodyStr, `<tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="AAA">AAA/</a></td> </tr>`) {
+	bodyStr = fetchAndTestDefault(t, "http://127.0.0.1:8001/")
+	if !strings.Contains(bodyStr, `href="AAA">AAA/</a>`) {
 		t.Fatal("mkdir rpc folder not created")
 	}
 
@@ -143,9 +137,9 @@ func TestGetFolder(t *testing.T) {
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test post file")
-	path = "%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1" // "하 하" encoded
-	payload = "12 하"
-	bodyStr = postDummyFile(t, "%2F"+path, payload)
+	path = "%2F%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1" // "하 하" encoded
+	payload = "123 하"
+	bodyStr = postDummyFile(t, path, payload)
 	if !strings.Contains(bodyStr, `ok`) {
 		t.Fatal("post file errored")
 	}
@@ -155,14 +149,14 @@ func TestGetFolder(t *testing.T) {
 		t.Fatal("post file errored reaching new file")
 	}
 
-	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if !strings.Contains(bodyStr, `<tr> <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-하 하 icon-blank"></i></td> <td class="file-size"><code>9.0B</code></td> <td class="arrow"><div class="arrow-icon"></div></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1">하 하</a></td> </tr>`) {
+	bodyStr = fetchAndTestDefault(t, "http://127.0.0.1:8001/")
+	if !strings.Contains(bodyStr, `href="%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1">하 하</a>`) {
 		t.Fatal("post file errored checking new file row")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test post file incorrect path")
-	bodyStr = postDummyFile(t, "%2E%2E%2F"+path, payload)
+	bodyStr = postDummyFile(t, "%2E%2E"+path, payload)
 	if !strings.Contains(bodyStr, `err`) {
 		t.Fatal("post file incorrect path didnt errored")
 	}
@@ -174,8 +168,8 @@ func TestGetFolder(t *testing.T) {
 		t.Fatal("mv rpc errored")
 	}
 
-	bodyStr = testDefaults(t, "http://127.0.0.1:8001/")
-	if strings.Contains(bodyStr, `<tr> <td><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-folder icon-blank"></i></td> <td class="file-size"><code></code></td> <td class="arrow"><i class="arrow-icon"></i></td> <td class="display-name"><a class="list-links" onclick="return onClickLink(event)" href="AAA">AAA/</a></td> </tr>`) {
+	bodyStr = fetchAndTestDefault(t, "http://127.0.0.1:8001/")
+	if strings.Contains(bodyStr, `href="AAA">AAA/</a></td> </tr>`) {
 		t.Fatal("mv rpc folder not moved")
 	}
 
