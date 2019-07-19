@@ -9,9 +9,14 @@ run:
 	make build
 	./gossa test-fixture
 
+run-prefix:
+	make build
+	./gossa -prefix="/fancy-path/" test-fixture
+
 ci:
 	timeout 10 make run &
-	cp src/gossa_test.go . && sleep 5 && go test
+	sleep 11 && timeout 10 make run-prefix &
+	cp src/gossa_test.go . && go test
 	rm gossa_test.go
 
 watch:

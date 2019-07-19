@@ -20,6 +20,7 @@ import (
 
 var host = flag.String("h", "127.0.0.1", "host to listen to")
 var port = flag.String("p", "8001", "port to listen to")
+var extraPath = flag.String("prefix", "/", "url prefix at which gossa can be reached, e.g. /gossa/ (slashes of importance)")
 var verb = flag.Bool("verb", true, "verbosity")
 var skipHidden = flag.Bool("k", true, "skip hidden files")
 var initPath = "."
@@ -36,6 +37,7 @@ type rowTemplate struct {
 
 type pageTemplate struct {
 	Title       template.HTML
+	ExtraPath   template.HTML
 	RowsFiles   []rowTemplate
 	RowsFolders []rowTemplate
 }
@@ -51,8 +53,11 @@ func check(e error) {
 	}
 }
 
-func logVerb(s ...interface{}) {
-	if *verb {
+func exitPath(w http.ResponseWriter, s ...interface{}) {
+	if recover() != nil {
+		log.Println("error", s)
+		w.Write([]byte("error"))
+	} else if *verb {
 		log.Println(s...)
 	}
 }
@@ -70,18 +75,21 @@ func sizeToString(bytes int64) string {
 	}
 }
 
-func replyList(w http.ResponseWriter, path string) {
+func replyList(w http.ResponseWriter, fullPath string, path string) {
+	_files, err := ioutil.ReadDir(fullPath)
+	check(err)
+
 	if !strings.HasSuffix(path, "/") {
 		path += "/"
 	}
 
-	_files, err := ioutil.ReadDir(initPath + path)
-	check(err)
-
+	title := "/" + strings.TrimPrefix(path, *extraPath)
 	p := pageTemplate{}
-	if path != "/" {
+	if !(path == "/" || path == *extraPath) {
 		p.RowsFolders = append(p.RowsFolders, rowTemplate{"../", "../", "", "folder"})
 	}
+	p.ExtraPath = template.HTML(html.EscapeString(*extraPath))
+	p.Title = template.HTML(html.EscapeString(title))
 
 	for _, el := range _files {
 		name := el.Name()
@@ -101,85 +109,65 @@ func replyList(w http.ResponseWriter, path string) {
 		}
 	}
 
-	p.Title = template.HTML(html.EscapeString(path))
 	page.Execute(w, p)
 }
 
 func doContent(w http.ResponseWriter, r *http.Request) {
-	path := html.UnescapeString(r.URL.Path)
-	fullPath, errPath := checkPath(path)
-	stat, errStat := os.Stat(fullPath)
-
-	if errStat != nil || errPath != nil {
-		logVerb("Error", errStat, errPath)
-		w.Write([]byte("error"))
-		return
+	if !strings.HasPrefix(r.URL.Path, *extraPath) {
+		http.Redirect(w, r, *extraPath, 302)
 	}
 
+	path := html.UnescapeString(r.URL.Path)
+	defer exitPath(w, "get content", path)
+	fullPath := checkPath(path)
+	stat, errStat := os.Stat(fullPath)
+	check(errStat)
+
 	if stat.IsDir() {
-		logVerb("Get list", fullPath)
-		replyList(w, path)
+		replyList(w, fullPath, path)
 	} else {
-		logVerb("Get file", fullPath)
 		fs.ServeHTTP(w, r)
 	}
 }
 
 func upload(w http.ResponseWriter, r *http.Request) {
-	unescaped, _ := url.PathUnescape(r.Header.Get("gossa-path"))
-	fullPath, err := checkPath(unescaped)
-
-	logVerb("Up", err, fullPath)
-	if err != nil {
-		w.Write([]byte("error"))
-		return
-	}
-
+	path, _ := url.PathUnescape(r.Header.Get("gossa-path"))
+	defer exitPath(w, "upload", path)
 	reader, _ := r.MultipartReader()
 	part, _ := reader.NextPart()
-	dst, _ := os.Create(fullPath)
+	dst, _ := os.Create(checkPath(path))
 	io.Copy(dst, part)
-	logVerb("Done upping", fullPath)
 	w.Write([]byte("ok"))
 }
 
 func rpc(w http.ResponseWriter, r *http.Request) {
 	var err error
+	var rpc rpcCall
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
-	bodyString := string(bodyBytes)
-	var payload rpcCall
-	json.Unmarshal([]byte(bodyString), &payload)
+	json.Unmarshal(bodyBytes, &rpc)
+	defer exitPath(w, "rpc", rpc)
 
-	for i := range payload.Args {
-		payload.Args[i], err = checkPath(payload.Args[i])
-		if err != nil {
-			logVerb("Cant read path", err, payload)
-			w.Write([]byte("error"))
-			return
-		}
+	if rpc.Call == "mkdirp" {
+		err = os.MkdirAll(checkPath(rpc.Args[0]), os.ModePerm)
+	} else if rpc.Call == "mv" {
+		err = os.Rename(checkPath(rpc.Args[0]), checkPath(rpc.Args[1]))
+	} else if rpc.Call == "rm" {
+		err = os.RemoveAll(checkPath(rpc.Args[0]))
 	}
 
-	if payload.Call == "mkdirp" {
-		err = os.MkdirAll(payload.Args[0], os.ModePerm)
-	} else if payload.Call == "mv" {
-		err = os.Rename(payload.Args[0], payload.Args[1])
-	} else if payload.Call == "rm" {
-		err = os.RemoveAll(payload.Args[0])
-	}
-
-	logVerb("RPC", err, payload)
+	check(err)
 	w.Write([]byte("ok"))
 }
 
-func checkPath(p string) (string, error) {
-	p = filepath.Join(initPath, p)
+func checkPath(p string) string {
+	p = filepath.Join(initPath, strings.TrimPrefix(p, *extraPath))
 	fp, err := filepath.Abs(p)
 
 	if err != nil || !strings.HasPrefix(fp, initPath) {
-		return "", errors.New("error")
+		panic(errors.New("invalid path"))
 	}
 
-	return fp, nil
+	return fp
 }
 
 func main() {
@@ -194,14 +182,12 @@ func main() {
 
 	hostString := *host + ":" + *port
 	fmt.Println("Gossa startig on directory " + initPath)
-	fmt.Println("Listening on http://" + hostString)
+	fmt.Println("Listening on http://" + hostString + *extraPath)
 
-	root := http.Dir(initPath)
-	fs = http.StripPrefix("/", http.FileServer(root))
-
-	http.HandleFunc("/rpc", rpc)
-	http.HandleFunc("/post", upload)
+	http.HandleFunc(*extraPath+"rpc", rpc)
+	http.HandleFunc(*extraPath+"post", upload)
 	http.HandleFunc("/", doContent)
+	fs = http.StripPrefix(*extraPath, http.FileServer(http.Dir(initPath)))
 	err = http.ListenAndServe(hostString, nil)
 	check(err)
 }

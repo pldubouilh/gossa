@@ -34,3 +34,5 @@ test-fixture/*/*
 !test-fixture/hols/glasgow.jpg
 !test-fixture/hols/landscape-540116_1920.jpg
 !test-fixture/hols/scotland-1761292_1920.jpg
+!test-fixture/fancy-path
+!test-fixture/fancy-path/*
