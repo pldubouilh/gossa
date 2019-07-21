@@ -84,7 +84,7 @@ func fetchAndTestDefault(t *testing.T, url string) string {
 	return bodyStr
 }
 
-func doTest(t *testing.T, url string) {
+func doTest(t *testing.T, url string, symlinkEnabled bool) {
 	payload := ""
 	path := ""
 	bodyStr := ""
@@ -99,9 +99,11 @@ func doTest(t *testing.T, url string) {
 	fetchAndTestDefault(t, url+"hols/../../")
 
 	// ~~~~~~~~~~~~~~~~~
-	fmt.Println("\r\n~~~~~~~~~~ test fetching a regular file")
+	fmt.Println("\r\n~~~~~~~~~~ test fetching regular files")
 	bodyStr = get(t, url+"subdir_with%20space/file_with%20space.html")
-	if !strings.Contains(bodyStr, `<b>spacious!!</b>`) {
+	bodyStr2 := get(t, url+"fancy-path/a")
+	fmt.Println(bodyStr2)
+	if !strings.Contains(bodyStr, `<b>spacious!!</b>`) || !strings.Contains(bodyStr2, `fancy!`) {
 		t.Fatal("fetching a regular file errored")
 	}
 
@@ -188,6 +190,24 @@ func doTest(t *testing.T, url string) {
 	}
 
 	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test symlink, should succeed: ", symlinkEnabled)
+	bodyStr = get(t, url+"/docker/readme.md")
+	hasReadme := strings.Contains(bodyStr, `the master branch is automatically built and pushed`)
+	if !symlinkEnabled && hasReadme {
+		t.Fatal("error symlink reached where illegal")
+	} else if symlinkEnabled && !hasReadme {
+		t.Fatal("error symlink unreachable")
+	}
+
+	if symlinkEnabled {
+		fmt.Println("\r\n~~~~~~~~~~ test symlink mkdir")
+		bodyStr = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/docker/testfolder"]}`)
+		if !strings.Contains(bodyStr, `ok`) {
+			t.Fatal("error symlink mkdir")
+		}
+	}
+
+	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test rm rpc & cleanup")
 	bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/hols/AAA"]}`)
 	if !strings.Contains(bodyStr, `ok`) {
@@ -204,15 +224,26 @@ func doTest(t *testing.T, url string) {
 		t.Fatal("cleanup errored #2")
 	}
 
-	fmt.Println("\r\n\r\n\r\n=========")
+	if symlinkEnabled {
+		bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/docker/testfolder"]}`)
+		if !strings.Contains(bodyStr, `ok`) {
+			t.Fatal("error symlink rm")
+		}
+	}
 }
+
 func TestGetFolder(t *testing.T) {
 	time.Sleep(6 * time.Second)
 	fmt.Println("========== testing normal path ============")
-	doTest(t, "http://127.0.0.1:8001/")
+	url := "http://127.0.0.1:8001/"
+	doTest(t, url, false)
 
+	fmt.Printf("\r\n=========\r\n")
 	time.Sleep(10 * time.Second)
-	fancyPath := "/fancy-path/"
-	fmt.Println("========== testing at " + fancyPath + " path ============")
-	doTest(t, "http://127.0.0.1:8001"+fancyPath)
+
+	url = "http://127.0.0.1:8001/fancy-path/"
+	fmt.Println("========== testing at fancy path ============")
+	doTest(t, url, true)
+
+	fmt.Printf("\r\n=========\r\n")
 }
