@@ -9,15 +9,24 @@ run:
 	make build
 	./gossa test-fixture
 
+run-extra:
+	make build
+	./gossa -prefix="/fancy-path/" -symlinks=true test-fixture
+
 ci:
+	-@cd test-fixture && ln -s ../docker .
 	timeout 10 make run &
-	cp src/gossa_test.go . && sleep 5 && go test
+	sleep 11 && timeout 10 make run-extra &
+	cp src/gossa_test.go . && go test
 	rm gossa_test.go
 
 watch:
 	ls src/* gossa-ui/* | entr -rc make run
 
-ci-watch:
+watch-extra:
+	ls src/* gossa-ui/* | entr -rc make run-extra
+
+watch-ci:
 	ls src/* gossa-ui/* | entr -rc make ci
 
 build-all:
