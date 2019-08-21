@@ -15,6 +15,7 @@ run-extra:
 
 ci:
 	-@cd test-fixture && ln -s ../docker .
+	make build
 	timeout 10 make run &
 	sleep 11 && timeout 10 make run-extra &
 	cp src/gossa_test.go . && go test
