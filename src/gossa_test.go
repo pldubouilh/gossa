@@ -102,7 +102,6 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 	fmt.Println("\r\n~~~~~~~~~~ test fetching regular files")
 	bodyStr = get(t, url+"subdir_with%20space/file_with%20space.html")
 	bodyStr2 := get(t, url+"fancy-path/a")
-	fmt.Println(bodyStr2)
 	if !strings.Contains(bodyStr, `<b>spacious!!</b>`) || !strings.Contains(bodyStr2, `fancy!`) {
 		t.Fatal("fetching a regular file errored")
 	}
@@ -191,7 +190,7 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test symlink, should succeed: ", symlinkEnabled)
-	bodyStr = get(t, url+"/docker/readme.md")
+	bodyStr = get(t, url+"/support/readme.md")
 	hasReadme := strings.Contains(bodyStr, `the master branch is automatically built and pushed`)
 	if !symlinkEnabled && hasReadme {
 		t.Fatal("error symlink reached where illegal")
@@ -201,7 +200,7 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 
 	if symlinkEnabled {
 		fmt.Println("\r\n~~~~~~~~~~ test symlink mkdir")
-		bodyStr = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/docker/testfolder"]}`)
+		bodyStr = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/support/testfolder"]}`)
 		if !strings.Contains(bodyStr, `ok`) {
 			t.Fatal("error symlink mkdir")
 		}
@@ -225,7 +224,7 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 	}
 
 	if symlinkEnabled {
-		bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/docker/testfolder"]}`)
+		bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/support/testfolder"]}`)
 		if !strings.Contains(bodyStr, `ok`) {
 			t.Fatal("error symlink rm")
 		}

@@ -14,7 +14,7 @@ run-extra:
 	./gossa -prefix="/fancy-path/" -symlinks=true test-fixture
 
 ci:
-	-@cd test-fixture && ln -s ../docker .
+	-@cd test-fixture && ln -s ../support .
 	make build
 	timeout 10 make run &
 	sleep 11 && timeout 10 make run-extra &

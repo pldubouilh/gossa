@@ -1,14 +1,14 @@
 gossa
 =============
 
-![e](https://user-images.githubusercontent.com/760637/52522293-942fa880-2c83-11e9-9f79-0a5b922bcc7f.gif)
+![e](https://user-images.githubusercontent.com/760637/64459310-e0e34100-d0f7-11e9-9248-13163bed1696.gif)
 
-[![build status](https://img.shields.io/travis/pldubouilh/gossa.svg?logo=travis)](https://travis-ci.org/pldubouilh/gossa)
+[![build status](https://github.com/pldubouilh/gossa/workflows/Go/badge.svg)](https://github.com/pldubouilh/gossa/actions)
 [![docker build status](https://img.shields.io/docker/cloud/build/pldubouilh/gossa.svg?logo=docker)](https://hub.docker.com/r/pldubouilh/gossa)
 [![docker pulls](https://img.shields.io/docker/pulls/pldubouilh/gossa.svg?logo=docker)](https://hub.docker.com/r/pldubouilh/gossa)
 [![github downloads](https://img.shields.io/github/downloads/pldubouilh/gossa/total.svg?logo=github)](https://github.com/pldubouilh/gossa/releases)
 
-a fast and simple webserver for your files, that's dependency-free and with under 200 lines of code, easy to review.
+a fast and simple webserver for your files, that's dependency-free and with 200 lines of code, easy to review.
 
 a [simple UI](https://github.com/pldubouilh/gossa-ui) comes as default, featuring :
 
@@ -16,13 +16,14 @@ a [simple UI](https://github.com/pldubouilh/gossa-ui) comes as default, featurin
   * 📩 drag-and-drop file/directory uploader
   * 🗺️ files handling - move/rename/delete
   * 📸 picture browser
-  * 📽️ video streaming from the browser
+  * 📽️ video streaming
   * ✍️ simple text editor
   * ⌨️ keyboard shortcuts
-  * 🥂 speed - showed rates above 100MB/s
+  * 🥂 speed - will easily fill available bandwidth
+  * 🔒 safe - easy/secure multi account setup
 
 ### build
-built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases) - or simply `make build` this repo
+built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases) - or simply `make build` this repo.
 
 ### usage
 ```sh
@@ -30,6 +31,16 @@ built blobs are available on the [release page](https://github.com/pldubouilh/go
 
 % ./gossa -h 192.168.100.33 ~/storage
 ```
+
+### fancier setups
+release images are pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gossa), e.g. :
+
+```sh
+# pull from dockerhub and run
+% sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
+```
+
+in a do-one-thing-well mindset, HTTPS and authentication has been left to middlewares and proxies. for instance [caddy](https://caddyserver.com/) handles this very well - have a look at this small [caddy config](https://github.com/pldubouilh/gossa/blob/master/support/Caddyfile) with authentication and option for HTTPS that works along with gossa.
 
 ### ui shortcuts
 |shortcut | action|
@@ -54,10 +65,3 @@ built blobs are available on the [release page](https://github.com/pldubouilh/go
 |Ctrl/Meta + V | paste previously selected paths to directory|
 |\<any letter\> | search|
 
-### using with docker
-a few docker/docker-compose files are provided in the [docker folder](https://github.com/pldubouilh/gossa/tree/master/docker). release images are also pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gossa), e.g. :
-
-```sh
-# pull from dockerhub and run
-% sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
-```

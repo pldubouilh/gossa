@@ -20,12 +20,14 @@ import (
 
 var host = flag.String("h", "127.0.0.1", "host to listen to")
 var port = flag.String("p", "8001", "port to listen to")
+var history = flag.Bool("history", true, "keep history for paths visited. default location is path/.gossa_history")
 var extraPath = flag.String("prefix", "/", "url prefix at which gossa can be reached, e.g. /gossa/ (slashes of importance)")
 var symlinks = flag.Bool("symlinks", false, "follow symlinks \033[4mWARNING\033[0m: symlinks will by nature allow to escape the defined path (default: false)")
 var verb = flag.Bool("verb", true, "verbosity")
 var skipHidden = flag.Bool("k", true, "skip hidden files")
 var initPath = "."
-
+var historyPath = ""
+var state = make(map[string]string)
 var fs http.Handler
 var page, _ = template.New("pageTemplate").Parse(`template_will_be_here`)
 
@@ -38,6 +40,7 @@ type rowTemplate struct {
 
 type pageTemplate struct {
 	Title       template.HTML
+	State       template.HTML
 	ExtraPath   template.HTML
 	RowsFiles   []rowTemplate
 	RowsFolders []rowTemplate
@@ -75,7 +78,7 @@ func humanize(bytes int64) string {
 	}
 }
 
-func replyList(w http.ResponseWriter, fullPath string, path string) {
+func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path string) {
 	_files, err := ioutil.ReadDir(fullPath)
 	check(err)
 
@@ -90,6 +93,7 @@ func replyList(w http.ResponseWriter, fullPath string, path string) {
 	}
 	p.ExtraPath = template.HTML(html.EscapeString(*extraPath))
 	p.Title = template.HTML(html.EscapeString(title))
+	p.State = template.HTML(html.EscapeString(state[r.Header.Get("Authorization")+path]))
 
 	for _, el := range _files {
 		if *skipHidden && strings.HasPrefix(el.Name(), ".") {
@@ -125,7 +129,7 @@ func doContent(w http.ResponseWriter, r *http.Request) {
 	check(errStat)
 
 	if stat.IsDir() {
-		replyList(w, fullPath, path)
+		replyList(w, r, fullPath, path)
 	} else {
 		fs.ServeHTTP(w, r)
 	}
@@ -154,6 +158,10 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 		err = os.Rename(checkPath(rpc.Args[0]), checkPath(rpc.Args[1]))
 	} else if rpc.Call == "rm" {
 		err = os.RemoveAll(checkPath(rpc.Args[0]))
+	} else if rpc.Call == "history" && *history {
+		state[r.Header.Get("Authorization")+rpc.Args[0]] = rpc.Args[1]
+		f, _ := json.MarshalIndent(state, "", " ")
+		ioutil.WriteFile(historyPath, f, 0644)
 	}
 
 	check(err)
@@ -173,23 +181,27 @@ func checkPath(p string) string {
 }
 
 func main() {
+	var err error
+	flag.Usage = func() {
+		fmt.Printf("\nusage: ./gossa ~/directory-to-share\n\n")
+		flag.PrintDefaults()
+	}
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		initPath = flag.Args()[0]
 	}
 
-	var err error
+	historyPath = filepath.Join(initPath, ".gossa_history")
+	h, _ := ioutil.ReadFile(historyPath)
+	_ = json.Unmarshal(h, &state)
 	initPath, err = filepath.Abs(initPath)
 	check(err)
-
-	hostString := *host + ":" + *port
-	fmt.Println("Gossa startig on directory " + initPath)
-	fmt.Println("Listening on http://" + hostString + *extraPath)
 
 	http.HandleFunc(*extraPath+"rpc", rpc)
 	http.HandleFunc(*extraPath+"post", upload)
 	http.HandleFunc("/", doContent)
 	fs = http.StripPrefix(*extraPath, http.FileServer(http.Dir(initPath)))
-	err = http.ListenAndServe(hostString, nil)
+	fmt.Printf("Gossa startig on directory %s\nListening on http://%s:%s%s\n", initPath, *host, *port, *extraPath)
+	err = http.ListenAndServe(*host+":"+*port, nil)
 	check(err)
 }
