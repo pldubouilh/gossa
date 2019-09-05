@@ -7,11 +7,11 @@ build:
 
 run:
 	make build
-	./gossa test-fixture
+	./gossa -verb=true test-fixture
 
 run-extra:
 	make build
-	./gossa -prefix="/fancy-path/" -symlinks=true test-fixture
+	./gossa -verb=true -prefix="/fancy-path/" -symlinks=true test-fixture
 
 ci:
 	-@cd test-fixture && ln -s ../support .

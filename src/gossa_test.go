@@ -116,7 +116,7 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test mkdir rpc")
 	bodyStr = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/AAA"]}`)
-	if !strings.Contains(bodyStr, `ok`) {
+	if bodyStr != `ok` {
 		t.Fatal("mkdir rpc errored")
 	}
 
@@ -142,7 +142,7 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 	path = "%2F%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1" // "하 하" encoded
 	payload = "123 하"
 	bodyStr = postDummyFile(t, url, path, payload)
-	if !strings.Contains(bodyStr, `ok`) {
+	if bodyStr != `ok` {
 		t.Fatal("post file errored")
 	}
 
@@ -166,13 +166,26 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test mv rpc")
 	bodyStr = postJSON(t, url+"rpc", `{"call":"mv","args":["/AAA", "/hols/AAA"]}`)
-	if !strings.Contains(bodyStr, `ok`) {
+	if bodyStr != `ok` {
 		t.Fatal("mv rpc errored")
 	}
 
 	bodyStr = fetchAndTestDefault(t, url)
 	if strings.Contains(bodyStr, `href="AAA">AAA/</a></td> </tr>`) {
 		t.Fatal("mv rpc folder not moved")
+	}
+
+	// ~~~~~~~~~~~~~~~~~
+	// Test where auth header unset, otherwise it'd be apended to the first arg
+	fmt.Println("\r\n~~~~~~~~~~ test history rpc")
+	bodyStr = postJSON(t, url+"rpc", `{"call":"historySet","args":["a", "123"]}`)
+	if bodyStr != `ok` {
+		t.Fatal("mv rpc errored")
+	}
+
+	bodyStr = postJSON(t, url+"rpc", `{"call":"historyGet","args":["a"]}`)
+	if bodyStr != `123` {
+		t.Fatal("error historyGet")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
@@ -199,17 +212,35 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 	}
 
 	if symlinkEnabled {
-		fmt.Println("\r\n~~~~~~~~~~ test symlink mkdir")
+		fmt.Println("\r\n~~~~~~~~~~ test symlink mkdir & cleanup")
 		bodyStr = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/support/testfolder"]}`)
-		if !strings.Contains(bodyStr, `ok`) {
+		if bodyStr != `ok` {
 			t.Fatal("error symlink mkdir")
 		}
+
+		bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/support/testfolder"]}`)
+		if bodyStr != `ok` {
+			t.Fatal("error symlink rm")
+		}
+	}
+
+	//
+	fmt.Println("\r\n~~~~~~~~~~ test upload in new folder")
+	payload = "abcdef1234"
+	bodyStr = postDummyFile(t, url, "%2Fhols%2FAAA%2Fabcdef", payload)
+	if strings.Contains(bodyStr, `err`) {
+		t.Fatal("upload in new folder errored")
+	}
+
+	bodyStr = get(t, url+"hols/AAA/abcdef")
+	if !strings.Contains(bodyStr, payload) {
+		t.Fatal("upload in new folder error reaching new file")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test rm rpc & cleanup")
 	bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/hols/AAA"]}`)
-	if !strings.Contains(bodyStr, `ok`) {
+	if bodyStr != `ok` {
 		t.Fatal("cleanup errored #0")
 	}
 
@@ -219,15 +250,8 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 	}
 
 	bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/하 하"]}`)
-	if !strings.Contains(bodyStr, `ok`) {
+	if bodyStr != `ok` {
 		t.Fatal("cleanup errored #2")
-	}
-
-	if symlinkEnabled {
-		bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/support/testfolder"]}`)
-		if !strings.Contains(bodyStr, `ok`) {
-			t.Fatal("error symlink rm")
-		}
 	}
 }
 

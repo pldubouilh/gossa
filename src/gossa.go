@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -23,7 +24,7 @@ var port = flag.String("p", "8001", "port to listen to")
 var history = flag.Bool("history", true, "keep history for paths visited. default location is path/.gossa_history")
 var extraPath = flag.String("prefix", "/", "url prefix at which gossa can be reached, e.g. /gossa/ (slashes of importance)")
 var symlinks = flag.Bool("symlinks", false, "follow symlinks \033[4mWARNING\033[0m: symlinks will by nature allow to escape the defined path (default: false)")
-var verb = flag.Bool("verb", true, "verbosity")
+var verb = flag.Bool("verb", false, "verbosity")
 var skipHidden = flag.Bool("k", true, "skip hidden files")
 var initPath = "."
 var historyPath = ""
@@ -32,15 +33,15 @@ var fs http.Handler
 var page, _ = template.New("pageTemplate").Parse(`template_will_be_here`)
 
 type rowTemplate struct {
-	Name string
-	Href template.HTML
-	Size string
-	Ext  string
+	Name     string
+	Href     template.HTML
+	Size     string
+	Ext      string
+	Selected bool
 }
 
 type pageTemplate struct {
 	Title       template.HTML
-	State       template.HTML
 	ExtraPath   template.HTML
 	RowsFiles   []rowTemplate
 	RowsFolders []rowTemplate
@@ -55,6 +56,10 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+func hash(s string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(s)))
 }
 
 func exitPath(w http.ResponseWriter, s ...interface{}) {
@@ -81,7 +86,6 @@ func humanize(bytes int64) string {
 func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path string) {
 	_files, err := ioutil.ReadDir(fullPath)
 	check(err)
-
 	if !strings.HasSuffix(path, "/") {
 		path += "/"
 	}
@@ -89,11 +93,11 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 	title := "/" + strings.TrimPrefix(path, *extraPath)
 	p := pageTemplate{}
 	if path != *extraPath {
-		p.RowsFolders = append(p.RowsFolders, rowTemplate{"../", "../", "", "folder"})
+		p.RowsFolders = append(p.RowsFolders, rowTemplate{"../", "../", "", "folder", false})
 	}
 	p.ExtraPath = template.HTML(html.EscapeString(*extraPath))
 	p.Title = template.HTML(html.EscapeString(title))
-	p.State = template.HTML(html.EscapeString(state[r.Header.Get("Authorization")+path]))
+	loc := state[hash(r.Header.Get("Authorization")+path)]
 
 	for _, el := range _files {
 		if *skipHidden && strings.HasPrefix(el.Name(), ".") {
@@ -105,11 +109,10 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 			href = strings.Replace(href, "/", "", 1)
 		}
 		if el.IsDir() {
-			p.RowsFolders = append(p.RowsFolders, rowTemplate{el.Name() + "/", template.HTML(href), "", "folder"})
+			p.RowsFolders = append(p.RowsFolders, rowTemplate{el.Name() + "/", template.HTML(href), "", "folder", loc == hash(el.Name()+"/")})
 		} else {
 			sl := strings.Split(el.Name(), ".")
-			ext := strings.ToLower(sl[len(sl)-1])
-			p.RowsFiles = append(p.RowsFiles, rowTemplate{el.Name(), template.HTML(href), humanize(el.Size()), ext})
+			p.RowsFiles = append(p.RowsFiles, rowTemplate{el.Name(), template.HTML(href), humanize(el.Size()), strings.ToLower(sl[len(sl)-1]), loc == hash(el.Name())})
 		}
 	}
 
@@ -151,6 +154,7 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(bodyBytes, &rpc)
 	defer exitPath(w, "rpc", rpc)
+	ret := "ok"
 
 	if rpc.Call == "mkdirp" {
 		err = os.MkdirAll(checkPath(rpc.Args[0]), os.ModePerm)
@@ -158,14 +162,16 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 		err = os.Rename(checkPath(rpc.Args[0]), checkPath(rpc.Args[1]))
 	} else if rpc.Call == "rm" {
 		err = os.RemoveAll(checkPath(rpc.Args[0]))
-	} else if rpc.Call == "history" && *history {
-		state[r.Header.Get("Authorization")+rpc.Args[0]] = rpc.Args[1]
+	} else if rpc.Call == "historySet" && *history {
+		state[hash(r.Header.Get("Authorization")+rpc.Args[0])] = rpc.Args[1] // first arg is always hashed (url), second is hashed on the browser depending on payload
 		f, _ := json.MarshalIndent(state, "", " ")
 		ioutil.WriteFile(historyPath, f, 0644)
+	} else if rpc.Call == "historyGet" && *history {
+		ret = state[hash(r.Header.Get("Authorization")+rpc.Args[0])]
 	}
 
 	check(err)
-	w.Write([]byte("ok"))
+	w.Write([]byte(ret))
 }
 
 func checkPath(p string) string {
