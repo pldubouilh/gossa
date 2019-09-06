@@ -84,7 +84,7 @@ func fetchAndTestDefault(t *testing.T, url string) string {
 	return bodyStr
 }
 
-func doTest(t *testing.T, url string, symlinkEnabled bool) {
+func doTest(t *testing.T, url string, testExtra bool) {
 	payload := ""
 	path := ""
 	bodyStr := ""
@@ -202,16 +202,16 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 	}
 
 	// ~~~~~~~~~~~~~~~~~
-	fmt.Println("\r\n~~~~~~~~~~ test symlink, should succeed: ", symlinkEnabled)
+	fmt.Println("\r\n~~~~~~~~~~ test symlink, should succeed: ", testExtra)
 	bodyStr = get(t, url+"/support/readme.md")
 	hasReadme := strings.Contains(bodyStr, `the master branch is automatically built and pushed`)
-	if !symlinkEnabled && hasReadme {
+	if !testExtra && hasReadme {
 		t.Fatal("error symlink reached where illegal")
-	} else if symlinkEnabled && !hasReadme {
+	} else if testExtra && !hasReadme {
 		t.Fatal("error symlink unreachable")
 	}
 
-	if symlinkEnabled {
+	if testExtra {
 		fmt.Println("\r\n~~~~~~~~~~ test symlink mkdir & cleanup")
 		bodyStr = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/support/testfolder"]}`)
 		if bodyStr != `ok` {
@@ -222,6 +222,15 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 		if bodyStr != `ok` {
 			t.Fatal("error symlink rm")
 		}
+	}
+
+	fmt.Println("\r\n~~~~~~~~~~ test hidden file, should succeed: ", testExtra)
+	bodyStr = get(t, url+"/.testhidden")
+	hasHidden := strings.Contains(bodyStr, `test`)
+	if !testExtra && hasHidden {
+		t.Fatal("error hidden file reached where illegal")
+	} else if testExtra && !hasHidden {
+		t.Fatal("error hidden file unreachable")
 	}
 
 	//

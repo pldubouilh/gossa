@@ -11,7 +11,7 @@ run:
 
 run-extra:
 	make build
-	./gossa -verb=true -prefix="/fancy-path/" -symlinks=true test-fixture
+	./gossa -verb=true -prefix="/fancy-path/" -k=false -symlinks=true test-fixture
 
 ci:
 	-@cd test-fixture && ln -s ../support .

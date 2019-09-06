@@ -8,6 +8,7 @@ gossa-windows.exe
 .vscode
 test-fixture/*
 test-fixture/*/*
+!test-fixture/.testhidden
 !test-fixture/compress
 !test-fixture/compress/foo*
 !test-fixture/gzip

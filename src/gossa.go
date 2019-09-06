@@ -175,11 +175,11 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 }
 
 func checkPath(p string) string {
-	p = filepath.Join(initPath, strings.TrimPrefix(p, *extraPath))
-	fp, err := filepath.Abs(p)
+	joined := filepath.Join(initPath, strings.TrimPrefix(p, *extraPath))
+	fp, err := filepath.Abs(joined)
 	sl, _ := filepath.EvalSymlinks(fp)
 
-	if err != nil || !strings.HasPrefix(fp, initPath) || len(sl) > 0 && !*symlinks && !strings.HasPrefix(sl, initPath) {
+	if err != nil || !strings.HasPrefix(fp, initPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, initPath) {
 		panic(errors.New("invalid path"))
 	}
 
