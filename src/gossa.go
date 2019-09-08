@@ -163,7 +163,11 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	} else if rpc.Call == "rm" {
 		err = os.RemoveAll(checkPath(rpc.Args[0]))
 	} else if rpc.Call == "historySet" && *history {
-		state[hash(r.Header.Get("Authorization")+rpc.Args[0])] = rpc.Args[1] // first arg is always hashed (url), second is hashed on the browser depending on payload
+		if rpc.Args[2] == "hash" {
+			state[hash(r.Header.Get("Authorization")+rpc.Args[0])] = hash(rpc.Args[1])
+		} else {
+			state[hash(r.Header.Get("Authorization")+rpc.Args[0])] = rpc.Args[1]
+		}
 		f, _ := json.MarshalIndent(state, "", " ")
 		ioutil.WriteFile(historyPath, f, 0644)
 	} else if rpc.Call == "historyGet" && *history {
