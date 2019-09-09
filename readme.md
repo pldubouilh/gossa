@@ -1,9 +1,9 @@
 gossa
 =============
 
-![e](https://user-images.githubusercontent.com/760637/64459310-e0e34100-d0f7-11e9-9248-13163bed1696.gif)
+![e](https://user-images.githubusercontent.com/760637/64541706-a3163080-d322-11e9-85ef-a4d8001fa6a5.gif)
 
-[![build status](https://github.com/pldubouilh/gossa/workflows/Go/badge.svg)](https://github.com/pldubouilh/gossa/actions)
+[![build status](https://github.com/pldubouilh/gossa/workflows/ci/badge.svg)](https://github.com/pldubouilh/gossa/actions)
 [![docker build status](https://img.shields.io/docker/cloud/build/pldubouilh/gossa.svg?logo=docker)](https://hub.docker.com/r/pldubouilh/gossa)
 [![docker pulls](https://img.shields.io/docker/pulls/pldubouilh/gossa.svg?logo=docker)](https://hub.docker.com/r/pldubouilh/gossa)
 [![github downloads](https://img.shields.io/github/downloads/pldubouilh/gossa/total.svg?logo=github)](https://github.com/pldubouilh/gossa/releases)
