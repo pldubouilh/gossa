@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 var host = flag.String("h", "127.0.0.1", "host to listen to")
@@ -29,6 +30,8 @@ var skipHidden = flag.Bool("k", true, "skip hidden files")
 var initPath = "."
 var historyPath = ""
 var state = make(map[string]string)
+var stateLock = sync.RWMutex{}
+
 var fs http.Handler
 var page, _ = template.New("pageTemplate").Parse(`template_will_be_here`)
 
@@ -97,7 +100,9 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 	}
 	p.ExtraPath = template.HTML(html.EscapeString(*extraPath))
 	p.Title = template.HTML(html.EscapeString(title))
+	stateLock.Lock()
 	loc := state[hash(r.Header.Get("Authorization")+path)]
+	stateLock.Unlock()
 
 	for _, el := range _files {
 		if *skipHidden && strings.HasPrefix(el.Name(), ".") {
@@ -155,6 +160,8 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(bodyBytes, &rpc)
 	defer exitPath(w, "rpc", rpc)
 	ret := "ok"
+	stateLock.Lock()
+	defer stateLock.Unlock()
 
 	if rpc.Call == "mkdirp" {
 		err = os.MkdirAll(checkPath(rpc.Args[0]), os.ModePerm)
