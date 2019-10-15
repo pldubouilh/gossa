@@ -15,6 +15,7 @@ if you prefer building the image yourself :
 % sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 gossa
 ```
 
+the options are settable through environment variables that can be passed starting off the docker image.
 
 a fancy docker image using [Caddy](https://caddyserver.com/) is also provided. a simple config is embedded in the docker file, and shows how to use http basic authentication, and automatic TLS for hands-free https 🎉
 

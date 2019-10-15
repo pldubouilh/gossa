@@ -68,6 +68,7 @@ func hash(s string) string {
 func exitPath(w http.ResponseWriter, s ...interface{}) {
 	if r := recover(); r != nil {
 		log.Println("error", s, r)
+		w.WriteHeader(500)
 		w.Write([]byte("error"))
 	} else if *verb {
 		log.Println(s...)
