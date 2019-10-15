@@ -42,26 +42,6 @@ release images are pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gos
 
 in a do-one-thing-well mindset, HTTPS and authentication has been left to middlewares and proxies. for instance [caddy](https://caddyserver.com/) handles this very well - have a look at this small [caddy config](https://github.com/pldubouilh/gossa/blob/master/support/Caddyfile) with authentication and option for HTTPS that works along with gossa.
 
-### ui shortcuts
-|shortcut | action|
-| ------------- |-------------|
-|click new folder icon | create new folder|
-|click pad icon | open file editor|
-|click file icon  | rename item|
-|double click file icon | delete item|
-|drag-and-drop item on UI | move item|
-|drag-and-drop external item | upload file/folders|
-
-### keyboard shortcuts
-|shortcut | action|
-|-------------|-------------|
-|Arrows/Enter | browse through files/directories and pictures|
-|Ctrl/Meta + C | copy URL to clipboard|
-|Ctrl/Meta + E | rename file/folder|
-|Ctrl/Meta + Del | delete file/folder|
-|Ctrl/Meta + U | upload new file/folder|
-|Ctrl/Meta + D | create a new directory|
-|Ctrl/Meta + X | cut selected path|
-|Ctrl/Meta + V | paste previously selected paths to directory|
-|\<any letter\> | search|
+### shortcuts
+the default UI is fully usable by through keyboard/UI shortcuts - press `Ctrl/Cmd + h` to see them all.
 
