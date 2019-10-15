@@ -159,9 +159,10 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(bodyBytes, &rpc)
 	defer exitPath(w, "rpc", rpc)
-	ret := "ok"
 	stateLock.Lock()
 	defer stateLock.Unlock()
+	ret := "ok"
+	key := hash(r.Header.Get("Authorization") + rpc.Args[0])
 
 	if rpc.Call == "mkdirp" {
 		err = os.MkdirAll(checkPath(rpc.Args[0]), os.ModePerm)
@@ -171,14 +172,14 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 		err = os.RemoveAll(checkPath(rpc.Args[0]))
 	} else if rpc.Call == "historySet" && *history {
 		if rpc.Args[2] == "hash" {
-			state[hash(r.Header.Get("Authorization")+rpc.Args[0])] = hash(rpc.Args[1])
+			state[key] = hash(rpc.Args[1])
 		} else {
-			state[hash(r.Header.Get("Authorization")+rpc.Args[0])] = rpc.Args[1]
+			state[key] = rpc.Args[1]
 		}
 		f, _ := json.MarshalIndent(state, "", " ")
 		ioutil.WriteFile(historyPath, f, 0644)
 	} else if rpc.Call == "historyGet" && *history {
-		ret = state[hash(r.Header.Get("Authorization")+rpc.Args[0])]
+		ret = state[key]
 	}
 
 	check(err)
