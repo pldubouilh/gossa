@@ -1,8 +1,8 @@
 # Caddy config
-# to enable https just set a valid/reachable domain instead of *:8002 - how simple !
+# to enable https just set a valid domain instead of mydomain.com - how simple !
 # authentication has been setup with 2 users, alice and bob
 
-*:8002
+mydomain.com
 basicauth / alice paul
 basicauth / bob dylan
 proxy / 127.0.0.1:8001
