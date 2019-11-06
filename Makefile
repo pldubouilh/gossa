@@ -16,8 +16,8 @@ run-extra:
 ci:
 	-@cd test-fixture && ln -s ../support .
 	make build
-	timeout 10 make run &
-	sleep 11 && timeout 10 make run-extra &
+	timeout 15 make run &
+	sleep 16 && timeout 15 make run-extra &
 	cp src/gossa_test.go . && go test
 	rm gossa_test.go
 
