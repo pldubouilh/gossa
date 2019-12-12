@@ -61,7 +61,7 @@ func fetchAndTestDefault(t *testing.T, url string) string {
 		t.Fatal("error title")
 	}
 
-	if !strings.Contains(body0, `<h1>./</h1>`) {
+	if !strings.Contains(body0, `<h1 onclick="return titleClick(event)">./</h1>`) {
 		t.Fatal("error header")
 	}
 
@@ -161,21 +161,6 @@ func doTest(t *testing.T, url string, testExtra bool) {
 	body1 = fetchAndTestDefault(t, url)
 	if body0 != `ok` || strings.Contains(body1, `href="AAA">AAA/</a></td> </tr>`) {
 		t.Fatal("mv rpc errored")
-	}
-
-	// ~~~~~~~~~~~~~~~~~
-	// Test where auth header unset, otherwise it'd be apended to the first arg
-	fmt.Println("\r\n~~~~~~~~~~ test history rpc")
-	body0 = postJSON(t, url+"rpc", `{"call":"historySet","args":["a", "123", "skipHash"]}`)
-	body1 = postJSON(t, url+"rpc", `{"call":"historyGet","args":["a"]}`)
-	if body0 != `ok` || body1 != `123` {
-		t.Fatal("error history get/set unhashed")
-	}
-
-	body0 = postJSON(t, url+"rpc", `{"call":"historySet","args":["b", "a", "hash"]}`)
-	body1 = postJSON(t, url+"rpc", `{"call":"historyGet","args":["b"]}`)
-	if body0 != `ok` || body1 != `ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb` {
-		t.Fatal("error history get/set hashed")
 	}
 
 	// ~~~~~~~~~~~~~~~~~

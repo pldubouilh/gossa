@@ -8,7 +8,7 @@ gossa
 [![docker pulls](https://img.shields.io/docker/pulls/pldubouilh/gossa.svg?logo=docker)](https://hub.docker.com/r/pldubouilh/gossa)
 [![github downloads](https://img.shields.io/github/downloads/pldubouilh/gossa/total.svg?logo=github)](https://github.com/pldubouilh/gossa/releases)
 
-a fast and simple webserver for your files, that's dependency-free and with 200 lines of code, easy to review.
+a fast and simple webserver for your files, that's dependency-free and with under 200 lines of code, easy to review.
 
 a [simple UI](https://github.com/pldubouilh/gossa-ui) comes as default, featuring :
 
