@@ -1,7 +1,7 @@
 gossa
 =============
 
-![e](https://user-images.githubusercontent.com/760637/64541706-a3163080-d322-11e9-85ef-a4d8001fa6a5.gif)
+![e](https://user-images.githubusercontent.com/760637/71449335-790a4200-274a-11ea-80be-4c536fbad8a1.gif)
 
 [![build status](https://github.com/pldubouilh/gossa/workflows/ci/badge.svg)](https://github.com/pldubouilh/gossa/actions)
 [![docker build status](https://img.shields.io/docker/cloud/build/pldubouilh/gossa.svg?logo=docker)](https://hub.docker.com/r/pldubouilh/gossa)
