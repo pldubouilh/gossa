@@ -7,17 +7,17 @@ build:
 
 run:
 	make build
-	./gossa test-fixture
+	./gossa -verb=true test-fixture
 
 run-extra:
 	make build
-	./gossa -prefix="/fancy-path/" -symlinks=true test-fixture
+	./gossa -verb=true -prefix="/fancy-path/" -k=false -symlinks=true test-fixture
 
 ci:
-	-@cd test-fixture && ln -s ../docker .
+	-@cd test-fixture && ln -s ../support .
 	make build
-	timeout 10 make run &
-	sleep 11 && timeout 10 make run-extra &
+	timeout 15 make run &
+	sleep 16 && timeout 15 make run-extra &
 	cp src/gossa_test.go . && go test
 	rm gossa_test.go
 

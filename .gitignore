@@ -8,6 +8,7 @@ gossa-windows.exe
 .vscode
 test-fixture/*
 test-fixture/*/*
+!test-fixture/.testhidden
 !test-fixture/compress
 !test-fixture/compress/foo*
 !test-fixture/gzip
@@ -36,3 +37,5 @@ test-fixture/*/*
 !test-fixture/hols/scotland-1761292_1920.jpg
 !test-fixture/fancy-path
 !test-fixture/fancy-path/*
+!test-fixture/ext/*
+!test-fixture/ext

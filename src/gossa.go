@@ -22,8 +22,8 @@ var host = flag.String("h", "127.0.0.1", "host to listen to")
 var port = flag.String("p", "8001", "port to listen to")
 var extraPath = flag.String("prefix", "/", "url prefix at which gossa can be reached, e.g. /gossa/ (slashes of importance)")
 var symlinks = flag.Bool("symlinks", false, "follow symlinks \033[4mWARNING\033[0m: symlinks will by nature allow to escape the defined path (default: false)")
-var verb = flag.Bool("verb", true, "verbosity")
-var skipHidden = flag.Bool("k", true, "skip hidden files")
+var verb = flag.Bool("verb", false, "verbosity")
+var skipHidden = flag.Bool("k", true, "\nskip hidden files")
 var initPath = "."
 
 var fs http.Handler
@@ -162,11 +162,11 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 }
 
 func checkPath(p string) string {
-	p = filepath.Join(initPath, strings.TrimPrefix(p, *extraPath))
-	fp, err := filepath.Abs(p)
+	joined := filepath.Join(initPath, strings.TrimPrefix(p, *extraPath))
+	fp, err := filepath.Abs(joined)
 	sl, _ := filepath.EvalSymlinks(fp)
 
-	if err != nil || !strings.HasPrefix(fp, initPath) || len(sl) > 0 && !*symlinks && !strings.HasPrefix(sl, initPath) {
+	if err != nil || !strings.HasPrefix(fp, initPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, initPath) {
 		panic(errors.New("invalid path"))
 	}
 
@@ -174,23 +174,25 @@ func checkPath(p string) string {
 }
 
 func main() {
+	var err error
+	flag.Usage = func() {
+		fmt.Printf("\nusage: ./gossa ~/directory-to-share\n\n")
+		flag.PrintDefaults()
+	}
+
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		initPath = flag.Args()[0]
 	}
 
-	var err error
 	initPath, err = filepath.Abs(initPath)
 	check(err)
-
-	hostString := *host + ":" + *port
-	fmt.Println("Gossa startig on directory " + initPath)
-	fmt.Println("Listening on http://" + hostString + *extraPath)
 
 	http.HandleFunc(*extraPath+"rpc", rpc)
 	http.HandleFunc(*extraPath+"post", upload)
 	http.HandleFunc("/", doContent)
 	fs = http.StripPrefix(*extraPath, http.FileServer(http.Dir(initPath)))
-	err = http.ListenAndServe(hostString, nil)
+	fmt.Printf("Gossa startig on directory %s\nListening on http://%s:%s%s\n", initPath, *host, *port, *extraPath)
+	err = http.ListenAndServe(*host+":"+*port, nil)
 	check(err)
 }

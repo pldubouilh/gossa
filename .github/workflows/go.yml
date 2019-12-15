@@ -1,4 +1,4 @@
-name: Go
+name: ci
 on: [push, pull_request]
 jobs:
 
@@ -15,7 +15,7 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
-      with: 
+      with:
         submodules: true
 
     - name: Run
