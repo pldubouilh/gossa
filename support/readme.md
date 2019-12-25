@@ -18,10 +18,8 @@ the options are settable through environment variables that can be passed starti
 a fancy docker image using [Caddy](https://caddyserver.com/) is also provided. have a look at the simple config file `Caddyfile`, it shows how to use http basic authentication, and automatic TLS for hands-free https 🎉
 
 ```sh
-# checkout the caddy config, build, and run docker image
-% vim caddy.Dockerfile
-% docker build -t gossa-caddy -f caddy.Dockerfile .
-% sudo docker run -v ~/LocalDirToShare:/shared -v `pwd`/Caddyfile:/Caddyfile --net=host gossa-caddy
+# pull caddy-gossa image from dockerhub and run
+% sudo docker run -v ~/LocalDirToShare:/shared -v `pwd`/Caddyfile:/Caddyfile --net=host pldubouilh/gossa:caddy
 ```
 
 a docker-compose example image is also provided. running docker compose should be straightforward : `docker-compose up .` have a look in `docker-compose.yml` for further configuration.
