@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-	"time"
 )
 
 func dieMaybe(t *testing.T, err error) {
@@ -55,39 +54,37 @@ func postJSON(t *testing.T, url string, what string) string {
 }
 
 func fetchAndTestDefault(t *testing.T, url string) string {
-	bodyStr := get(t, url)
+	body0 := get(t, url)
 
-	if !strings.Contains(bodyStr, `<title>/</title>`) {
+	if !strings.Contains(body0, `<title>/</title>`) {
 		t.Fatal("error title")
 	}
 
-	if !strings.Contains(bodyStr, `<h1>./</h1>`) {
+	if !strings.Contains(body0, `<h1 onclick="return titleClick(event)">./</h1>`) {
 		t.Fatal("error header")
 	}
 
-	if !strings.Contains(bodyStr, `href="hols">hols/</a>`) {
+	if !strings.Contains(body0, `href="hols">hols/</a>`) {
 		t.Fatal("error hols folder")
 	}
 
-	if !strings.Contains(bodyStr, `href="curimit@gmail.com%20%2840%25%29">curimit@gmail.com (40%)/</a>`) {
+	if !strings.Contains(body0, `href="curimit@gmail.com%20%2840%25%29">curimit@gmail.com (40%)/</a>`) {
 		t.Fatal("error curimit@gmail.com (40%) folder")
 	}
 
-	if !strings.Contains(bodyStr, `href="%E4%B8%AD%E6%96%87">中文/</a>`) {
+	if !strings.Contains(body0, `href="%E4%B8%AD%E6%96%87">中文/</a>`) {
 		t.Fatal("error 中文 folder")
 	}
 
-	if !strings.Contains(bodyStr, `href="custom_mime_type.types">custom_mime_type.types</a>`) {
+	if !strings.Contains(body0, `href="custom_mime_type.types">custom_mime_type.types</a>`) {
 		t.Fatal("error row custom_mime_type")
 	}
 
-	return bodyStr
+	return body0
 }
 
-func doTest(t *testing.T, url string, symlinkEnabled bool) {
-	payload := ""
-	path := ""
-	bodyStr := ""
+func doTest(t *testing.T, url string, testExtra bool) {
+	var payload, path, body0, body1, body2 string
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test fetching default path")
@@ -100,41 +97,42 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test fetching regular files")
-	bodyStr = get(t, url+"subdir_with%20space/file_with%20space.html")
-	bodyStr2 := get(t, url+"fancy-path/a")
-	fmt.Println(bodyStr2)
-	if !strings.Contains(bodyStr, `<b>spacious!!</b>`) || !strings.Contains(bodyStr2, `fancy!`) {
+	body0 = get(t, url+"subdir_with%20space/file_with%20space.html")
+	body1 = get(t, url+"fancy-path/a")
+	if body0 != `<b>spacious!!</b> ` || body1 != `fancy! ` {
 		t.Fatal("fetching a regular file errored")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test fetching a invalid file")
-	bodyStr = get(t, url+"../../../../../../../../../../etc/passwd")
-	if !strings.Contains(bodyStr, `error`) {
+	path = "../../../../../../../../../../etc/passwd"
+	if !testExtra && get(t, url+path) != `error` {
 		t.Fatal("fetching a invalid file didnt errored")
+	} else if testExtra {
+		fetchAndTestDefault(t, url+path) // extra path will just redirect to root dir
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test mkdir rpc")
-	bodyStr = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/AAA"]}`)
-	if !strings.Contains(bodyStr, `ok`) {
+	body0 = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/AAA"]}`)
+	if body0 != `ok` {
 		t.Fatal("mkdir rpc errored")
 	}
 
-	bodyStr = fetchAndTestDefault(t, url)
-	if !strings.Contains(bodyStr, `href="AAA">AAA/</a>`) {
+	body0 = fetchAndTestDefault(t, url)
+	if !strings.Contains(body0, `href="AAA">AAA/</a>`) {
 		t.Fatal("mkdir rpc folder not created")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test invalid mkdir rpc")
-	bodyStr = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["../BBB"]}`)
-	if !strings.Contains(bodyStr, `error`) {
+	body0 = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["../BBB"]}`)
+	if body0 != `error` {
 		t.Fatal("invalid mkdir rpc didnt errored #0")
 	}
 
-	bodyStr = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/../BBB"]}`)
-	if !strings.Contains(bodyStr, `error`) {
+	body0 = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/../BBB"]}`)
+	if body0 != `error` {
 		t.Fatal("invalid mkdir rpc didnt errored #1")
 	}
 
@@ -142,108 +140,104 @@ func doTest(t *testing.T, url string, symlinkEnabled bool) {
 	fmt.Println("\r\n~~~~~~~~~~ test post file")
 	path = "%2F%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1" // "하 하" encoded
 	payload = "123 하"
-	bodyStr = postDummyFile(t, url, path, payload)
-	if !strings.Contains(bodyStr, `ok`) {
+	body0 = postDummyFile(t, url, path, payload)
+	body1 = get(t, url+path)
+	body2 = fetchAndTestDefault(t, url)
+	if body0 != `ok` || body1 != payload || !strings.Contains(body2, `href="%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1">하 하</a>`) {
 		t.Fatal("post file errored")
-	}
-
-	bodyStr = get(t, url+path)
-	if !strings.Contains(bodyStr, payload) {
-		t.Fatal("post file errored reaching new file")
-	}
-
-	bodyStr = fetchAndTestDefault(t, url)
-	if !strings.Contains(bodyStr, `href="%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1">하 하</a>`) {
-		t.Fatal("post file errored checking new file row")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test post file incorrect path")
-	bodyStr = postDummyFile(t, url, "%2E%2E"+path, payload)
-	if !strings.Contains(bodyStr, `err`) {
+	body0 = postDummyFile(t, url, "%2E%2E"+path, payload)
+	if !strings.Contains(body0, `err`) {
 		t.Fatal("post file incorrect path didnt errored")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test mv rpc")
-	bodyStr = postJSON(t, url+"rpc", `{"call":"mv","args":["/AAA", "/hols/AAA"]}`)
-	if !strings.Contains(bodyStr, `ok`) {
+	body0 = postJSON(t, url+"rpc", `{"call":"mv","args":["/AAA", "/hols/AAA"]}`)
+	body1 = fetchAndTestDefault(t, url)
+	if body0 != `ok` || strings.Contains(body1, `href="AAA">AAA/</a></td> </tr>`) {
 		t.Fatal("mv rpc errored")
-	}
-
-	bodyStr = fetchAndTestDefault(t, url)
-	if strings.Contains(bodyStr, `href="AAA">AAA/</a></td> </tr>`) {
-		t.Fatal("mv rpc folder not moved")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test upload in new folder")
-	payload = "abcdef1234"
-	bodyStr = postDummyFile(t, url, "%2Fhols%2FAAA%2Fabcdef", payload)
-	if strings.Contains(bodyStr, `err`) {
+	payload = "test"
+	body0 = postDummyFile(t, url, "%2Fhols%2FAAA%2Fabcdef", payload)
+	body1 = get(t, url+"hols/AAA/abcdef")
+	if body0 != `ok` || body1 != payload {
 		t.Fatal("upload in new folder errored")
 	}
 
-	bodyStr = get(t, url+"hols/AAA/abcdef")
-	if !strings.Contains(bodyStr, payload) {
-		t.Fatal("upload in new folder error reaching new file")
-	}
-
 	// ~~~~~~~~~~~~~~~~~
-	fmt.Println("\r\n~~~~~~~~~~ test symlink, should succeed: ", symlinkEnabled)
-	bodyStr = get(t, url+"/docker/readme.md")
-	hasReadme := strings.Contains(bodyStr, `the master branch is automatically built and pushed`)
-	if !symlinkEnabled && hasReadme {
+	fmt.Println("\r\n~~~~~~~~~~ test symlink, should succeed: ", testExtra)
+	body0 = get(t, url+"/support/readme.md")
+	hasReadme := strings.Contains(body0, `the master branch is automatically built and pushed`)
+	if !testExtra && hasReadme {
 		t.Fatal("error symlink reached where illegal")
-	} else if symlinkEnabled && !hasReadme {
+	} else if testExtra && !hasReadme {
 		t.Fatal("error symlink unreachable")
 	}
 
-	if symlinkEnabled {
-		fmt.Println("\r\n~~~~~~~~~~ test symlink mkdir")
-		bodyStr = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/docker/testfolder"]}`)
-		if !strings.Contains(bodyStr, `ok`) {
+	if testExtra {
+		fmt.Println("\r\n~~~~~~~~~~ test symlink mkdir & cleanup")
+		body0 = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/support/testfolder"]}`)
+		if body0 != `ok` {
 			t.Fatal("error symlink mkdir")
 		}
+
+		body0 = postJSON(t, url+"rpc", `{"call":"rm","args":["/support/testfolder"]}`)
+		if body0 != `ok` {
+			t.Fatal("error symlink rm")
+		}
+	}
+
+	fmt.Println("\r\n~~~~~~~~~~ test hidden file, should succeed: ", testExtra)
+	body0 = get(t, url+"/.testhidden")
+	hasHidden := strings.Contains(body0, `test`)
+	if !testExtra && hasHidden {
+		t.Fatal("error hidden file reached where illegal")
+	} else if testExtra && !hasHidden {
+		t.Fatal("error hidden file unreachable")
+	}
+
+	//
+	fmt.Println("\r\n~~~~~~~~~~ test upload in new folder")
+	payload = "test"
+	body0 = postDummyFile(t, url, "%2Fhols%2FAAA%2Fabcdef", payload)
+	body1 = get(t, url+"hols/AAA/abcdef")
+	if body0 != `ok` || body1 != payload {
+		t.Fatal("upload in new folder errored")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test rm rpc & cleanup")
-	bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/hols/AAA"]}`)
-	if !strings.Contains(bodyStr, `ok`) {
+	body0 = postJSON(t, url+"rpc", `{"call":"rm","args":["/hols/AAA"]}`)
+	if body0 != `ok` {
 		t.Fatal("cleanup errored #0")
 	}
 
-	bodyStr = get(t, url+"hols/AAA")
-	if !strings.Contains(bodyStr, `error`) {
+	body0 = get(t, url+"hols/AAA")
+	if !strings.Contains(body0, `error`) {
 		t.Fatal("cleanup errored #1")
 	}
 
-	bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/하 하"]}`)
-	if !strings.Contains(bodyStr, `ok`) {
+	body0 = postJSON(t, url+"rpc", `{"call":"rm","args":["/하 하"]}`)
+	if body0 != `ok` {
 		t.Fatal("cleanup errored #2")
-	}
-
-	if symlinkEnabled {
-		bodyStr = postJSON(t, url+"rpc", `{"call":"rm","args":["/docker/testfolder"]}`)
-		if !strings.Contains(bodyStr, `ok`) {
-			t.Fatal("error symlink rm")
-		}
 	}
 }
 
-func TestGetFolder(t *testing.T) {
-	time.Sleep(6 * time.Second)
+func TestNormal(t *testing.T) {
 	fmt.Println("========== testing normal path ============")
-	url := "http://127.0.0.1:8001/"
-	doTest(t, url, false)
-
+	doTest(t, "http://127.0.0.1:8001/", false)
 	fmt.Printf("\r\n=========\r\n")
-	time.Sleep(10 * time.Second)
+}
 
-	url = "http://127.0.0.1:8001/fancy-path/"
+func TestExtra(t *testing.T) {
 	fmt.Println("========== testing at fancy path ============")
-	doTest(t, url, true)
-
+	doTest(t, "http://127.0.0.1:8001/fancy-path/", true)
 	fmt.Printf("\r\n=========\r\n")
 }
