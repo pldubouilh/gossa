@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-	"time"
 )
 
 func dieMaybe(t *testing.T, err error) {
@@ -231,18 +230,14 @@ func doTest(t *testing.T, url string, testExtra bool) {
 	}
 }
 
-func TestGetFolder(t *testing.T) {
-	time.Sleep(6 * time.Second)
+func TestNormal(t *testing.T) {
 	fmt.Println("========== testing normal path ============")
-	url := "http://127.0.0.1:8001/"
-	doTest(t, url, false)
-
+	doTest(t, "http://127.0.0.1:8001/", false)
 	fmt.Printf("\r\n=========\r\n")
-	time.Sleep(10 * time.Second)
+}
 
-	url = "http://127.0.0.1:8001/fancy-path/"
+func TestExtra(t *testing.T) {
 	fmt.Println("========== testing at fancy path ============")
-	doTest(t, url, true)
-
+	doTest(t, "http://127.0.0.1:8001/fancy-path/", true)
 	fmt.Printf("\r\n=========\r\n")
 }
