@@ -25,6 +25,7 @@ var extraPath = flag.String("prefix", "/", "url prefix at which gossa can be rea
 var symlinks = flag.Bool("symlinks", false, "follow symlinks \033[4mWARNING\033[0m: symlinks will by nature allow to escape the defined path (default: false)")
 var verb = flag.Bool("verb", false, "verbosity")
 var skipHidden = flag.Bool("k", true, "\nskip hidden files")
+var ro = flag.Bool("ro", false, "read only mode (no upload, rename, move, etc...)")
 var initPath = "."
 
 var fs http.Handler
@@ -40,6 +41,7 @@ type rowTemplate struct {
 type pageTemplate struct {
 	Title       template.HTML
 	ExtraPath   template.HTML
+	Ro          bool
 	RowsFiles   []rowTemplate
 	RowsFolders []rowTemplate
 }
@@ -92,6 +94,7 @@ func replyList(w http.ResponseWriter, fullPath string, path string) {
 		p.RowsFolders = append(p.RowsFolders, rowTemplate{"../", "../", "", "folder"})
 	}
 	p.ExtraPath = template.HTML(html.EscapeString(*extraPath))
+	p.Ro = *ro
 	p.Title = template.HTML(html.EscapeString(title))
 
 	for _, el := range _files {
@@ -190,8 +193,10 @@ func main() {
 	initPath, err = filepath.Abs(initPath)
 	check(err)
 
-	http.HandleFunc(*extraPath+"rpc", rpc)
-	http.HandleFunc(*extraPath+"post", upload)
+	if !*ro {
+		http.HandleFunc(*extraPath+"rpc", rpc)
+		http.HandleFunc(*extraPath+"post", upload)
+	}
 	http.HandleFunc("/", doContent)
 	fs = http.StripPrefix(*extraPath, http.FileServer(http.Dir(initPath)))
 	fmt.Printf("Gossa startig on directory %s\nListening on http://%s:%s%s\n", initPath, *host, *port, *extraPath)

@@ -4,6 +4,7 @@ gossa-linux-arm
 gossa-linux-arm64
 gossa-mac
 gossa-windows.exe
+gossa_test.go
 
 .vscode
 test-fixture/*

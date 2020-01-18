@@ -14,13 +14,14 @@ a [simple UI](https://github.com/pldubouilh/gossa-ui) comes as default, featurin
 
   * 🔍 files/directories browser
   * 📩 drag-and-drop file/directory uploader
+  * 🚀 lightweight, default ui weights 110kB and prints in ms
   * 🗺️ files handling - move/rename/delete
   * 📸 picture browser
   * 📽️ video streaming
   * ✍️ simple text editor
   * ⌨️ keyboard shortcuts
-  * 🥂 speed - will easily fill available bandwidth
-  * 🔒 safe - easy/secure multi account setup
+  * 🥂 fast golang static server, easily fills available bandwidth
+  * 🔒 easy/secure multi account setup
 
 ### build
 built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases) - or simply `make build` this repo.
