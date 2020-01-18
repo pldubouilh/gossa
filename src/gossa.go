@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -79,6 +80,7 @@ func humanize(bytes int64) string {
 func replyList(w http.ResponseWriter, fullPath string, path string) {
 	_files, err := ioutil.ReadDir(fullPath)
 	check(err)
+	sort.Slice(_files, func(i, j int) bool { return strings.ToLower(_files[i].Name()) < strings.ToLower(_files[j].Name()) })
 
 	if !strings.HasSuffix(path, "/") {
 		path += "/"
