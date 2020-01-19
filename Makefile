@@ -6,15 +6,12 @@ build:
 	rm gossa.go
 
 run:
-	make build
 	./gossa -verb=true test-fixture
 
 run-ro:
-	make build
 	./gossa -verb=true -ro=true test-fixture
 
 run-extra:
-	make build
 	./gossa -verb=true -prefix="/fancy-path/" -k=false -symlinks=true test-fixture
 
 test:
@@ -25,13 +22,13 @@ test:
 	go test
 
 watch:
-	ls src/* gossa-ui/* | entr -rc make run
+	ls src/* gossa-ui/* | entr -rc make build run
 
 watch-extra:
-	ls src/* gossa-ui/* | entr -rc make run-extra
+	ls src/* gossa-ui/* | entr -rc make build run-extra
 
 watch-ro:
-	ls src/* gossa-ui/* | entr -rc make run-ro
+	ls src/* gossa-ui/* | entr -rc make build run-ro
 
 watch-test:
 	ls src/* gossa-ui/* | entr -rc make test

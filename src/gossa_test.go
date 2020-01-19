@@ -302,14 +302,12 @@ func startGossa(what string) int {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stdout
 	cmd.Start()
-	time.Sleep(5 * time.Second)
+	time.Sleep(3 * time.Second)
 	return cmd.Process.Pid
 }
 
 func killallgossa() {
 	cmd := exec.Command("/usr/bin/killall", "gossa")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stdout
 	cmd.Start()
 }
 
