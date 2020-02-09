@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 func dieMaybe(t *testing.T, err error) {
@@ -83,7 +86,7 @@ func fetchAndTestDefault(t *testing.T, url string) string {
 	return body0
 }
 
-func doTest(t *testing.T, url string, testExtra bool) {
+func doTestRegular(t *testing.T, url string, testExtra bool) {
 	var payload, path, body0, body1, body2 string
 
 	// ~~~~~~~~~~~~~~~~~
@@ -228,16 +231,99 @@ func doTest(t *testing.T, url string, testExtra bool) {
 	if body0 != `ok` {
 		t.Fatal("cleanup errored #2")
 	}
+
+	fmt.Printf("\r\n=========\r\n")
 }
 
-func TestNormal(t *testing.T) {
+func doTestReadonly(t *testing.T, url string) {
+	var payload, path, body0, body1 string
+
+	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test fetching default path")
+	fetchAndTestDefault(t, url)
+
+	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test fetching an invalid path - redirected to root")
+	fetchAndTestDefault(t, url+"../../")
+	fetchAndTestDefault(t, url+"hols/../../")
+
+	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test fetching regular files")
+	body0 = get(t, url+"subdir_with%20space/file_with%20space.html")
+	body1 = get(t, url+"fancy-path/a")
+	if body0 != `<b>spacious!!</b> ` || body1 != `fancy! ` {
+		t.Fatal("fetching a regular file errored")
+	}
+
+	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test fetching a invalid file")
+	path = "../../../../../../../../../../etc/passwd"
+	if get(t, url+path) != `error` {
+		t.Fatal("fetching a invalid file didnt errored")
+	}
+
+	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test mkdir rpc")
+	body0 = postJSON(t, url+"rpc", `{"call":"mkdirp","args":["/AAA"]}`)
+	if body0 == `ok` {
+		t.Fatal("mkdir rpc passed - should not be allowed")
+	}
+
+	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test post file")
+	path = "%2F%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1" // "하 하" encoded
+	payload = "123 하"
+	body0 = postDummyFile(t, url, path, payload)
+	body1 = get(t, url+path)
+	if body0 == `ok` {
+		t.Fatal("post file passed - should not be allowed")
+	}
+
+	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test mv rpc")
+	body0 = postJSON(t, url+"rpc", `{"call":"mv","args":["/AAA", "/hols/AAA"]}`)
+	body1 = fetchAndTestDefault(t, url)
+	if body0 == `ok` {
+		t.Fatal("mv rpc passed - should not be allowed")
+	}
+
+	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test rm rpc & cleanup")
+	body0 = postJSON(t, url+"rpc", `{"call":"rm","args":["/hols/AAA"]}`)
+	if body0 == `ok` {
+		t.Fatal("cleanup passed - should not be allowed")
+	}
+
+	fmt.Printf("\r\n=========\r\n")
+}
+
+func startGossa(what string) int {
+	cmd := exec.Command("/usr/bin/make", what)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stdout
+	cmd.Start()
+	time.Sleep(3 * time.Second)
+	return cmd.Process.Pid
+}
+
+func killallgossa() {
+	cmd := exec.Command("/usr/bin/killall", "gossa")
+	cmd.Start()
+}
+
+func TestGossa(t *testing.T) {
+	startGossa("run")
 	fmt.Println("========== testing normal path ============")
-	doTest(t, "http://127.0.0.1:8001/", false)
-	fmt.Printf("\r\n=========\r\n")
-}
+	doTestRegular(t, "http://127.0.0.1:8001/", false)
+	killallgossa()
 
-func TestExtra(t *testing.T) {
-	fmt.Println("========== testing at fancy path ============")
-	doTest(t, "http://127.0.0.1:8001/fancy-path/", true)
-	fmt.Printf("\r\n=========\r\n")
+	startGossa("run-extra")
+	fmt.Println("========== testing extras options ============")
+	doTestRegular(t, "http://127.0.0.1:8001/fancy-path/", true)
+	killallgossa()
+
+	startGossa("run-ro")
+	fmt.Println("========== testing read only ============")
+	doTestReadonly(t, "http://127.0.0.1:8001/")
+	killallgossa()
 }

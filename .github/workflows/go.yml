@@ -19,4 +19,4 @@ jobs:
         submodules: true
 
     - name: Run
-      run: make ci
+      run: make test

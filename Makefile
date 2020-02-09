@@ -3,42 +3,35 @@ build:
 	make -C gossa-ui/
 	go vet && go fmt
 	CGO_ENABLED=0 go build gossa.go
-	sleep 1 && rm gossa.go
+	rm gossa.go
 
 run:
-	make build
 	./gossa -verb=true test-fixture
 
+run-ro:
+	./gossa -verb=true -ro=true test-fixture
+
 run-extra:
-	make build
 	./gossa -verb=true -prefix="/fancy-path/" -k=false -symlinks=true test-fixture
 
 test:
-	timeout 60 make run &
-	sleep 15 && cp src/gossa_test.go . && go test -run TestNormal
-	rm gossa_test.go
-	-killall gossa
-
-test-extra:
-	timeout 60 make run-extra &
-	sleep 15 && cp src/gossa_test.go . && go test -run TestExtra
-	rm gossa_test.go
-	-killall gossa
-
-ci:
+	make build
+	-rm gossa_test.go
 	-@cd test-fixture && ln -s ../support .
-	make test
-	make test-extra
-
+	cp src/gossa_test.go .
+	go test
 
 watch:
-	ls src/* gossa-ui/* | entr -rc make run
+	ls src/* gossa-ui/* | entr -rc make build run
 
 watch-extra:
-	ls src/* gossa-ui/* | entr -rc make run-extra
+	ls src/* gossa-ui/* | entr -rc make build run-extra
 
-watch-ci:
-	ls src/* gossa-ui/* | entr -rc make ci
+watch-ro:
+	ls src/* gossa-ui/* | entr -rc make build run-ro
+
+watch-test:
+	ls src/* gossa-ui/* | entr -rc make test
 
 build-all:
 	cp src/gossa.go gossa.go
