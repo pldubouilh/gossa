@@ -91,6 +91,7 @@ the master branch is automatically built and pushed to [dockerhub](https://hub.d
 
 ```sh
 # pull from dockerhub and run
+% mkdir ~/LocalDirToShare
 % sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
 ```
 
@@ -99,6 +100,7 @@ if you prefer building the image yourself :
 ```sh
 # build gossa within a build container, needs to be ran within the sources, ../ from here, and run
 % docker build -t gossa -f support/build.Dockerfile .
+% mkdir ~/LocalDirToShare
 % sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 gossa
 ```
 
