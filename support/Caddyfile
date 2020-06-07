@@ -1,8 +1,0 @@
-# Caddy config
-# to enable https just set a valid domain (e.g. mydomain.com) instead of :8080 - how simple !
-# authentication has been setup with 2 users, alice and bob
-
-:8080
-basicauth / alice paul
-basicauth / bob dylan
-proxy / 127.0.0.1:8001
