@@ -5,6 +5,9 @@ build:
 	CGO_ENABLED=0 go build gossa.go
 	rm gossa.go
 
+install:
+	sudo cp gossa /usr/local/bin
+
 run:
 	./gossa -verb=true test-fixture
 
