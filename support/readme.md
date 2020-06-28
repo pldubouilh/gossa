@@ -1,6 +1,30 @@
+## docker
+
+the master branch is automatically built and pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gossa) under `pldubouilh/gossa`.
+
+```sh
+# pull from dockerhub and run
+% mkdir ~/LocalDirToShare
+% sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
+
+# options are settable through env. variabes. all the options are the build.Dockerfile
+% sudo docker run -e PREFIX="/gossa/" -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
+```
+
+if you prefer building the image yourself :
+
+```sh
+# build gossa within a build container, needs to be ran within the sources, ../ from here, and run
+% mkdir ~/LocalDirToShare
+% docker build -t gossa -f support/build.Dockerfile .
+% sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 gossa
+```
+
+a docker-compose example image is also provided. running docker compose should be straightforward : `docker-compose up .` have a look in `docker-compose.yml` for further configuration.
+
 ## multi-account setup
 
-authentication / user routing has been left out of the design of gossa, as simple tools are already available for this purpose.
+authentication / user routing has been left out of the design of gossa, as simple tools are already available for this purpose. [caddy](https://caddyserver.com/v1/) is used here as an example, but other proxy can be used in a similar fashion.
 
 ### example 1 root, multiple read-only users
 
@@ -84,26 +108,3 @@ start 2 gossa instances, and caddy
 % ./gossa -p 8002 -symlinks=true test/user2 &
 % ./caddy
 ```
-
-## docker
-
-the master branch is automatically built and pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gossa) under `pldubouilh/gossa`.
-
-```sh
-# pull from dockerhub and run
-% mkdir ~/LocalDirToShare
-% sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
-```
-
-if you prefer building the image yourself :
-
-```sh
-# build gossa within a build container, needs to be ran within the sources, ../ from here, and run
-% docker build -t gossa -f support/build.Dockerfile .
-% mkdir ~/LocalDirToShare
-% sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 gossa
-```
-
-the options are settable through environment variables that can be passed starting off the docker image.
-
-a docker-compose example image is also provided. running docker compose should be straightforward : `docker-compose up .` have a look in `docker-compose.yml` for further configuration.
