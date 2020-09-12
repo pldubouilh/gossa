@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/zip"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -147,12 +148,41 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("ok"))
 }
 
+func walkZip(wz *zip.Writer, fp, baseInZip string) {
+	files, err := ioutil.ReadDir(fp)
+	check(err)
+
+	for _, file := range files {
+		if !file.IsDir() {
+			data, err := ioutil.ReadFile(fp + file.Name())
+			check(err)
+			f, err := wz.Create(baseInZip + file.Name())
+			check(err)
+			_, err = f.Write(data)
+			check(err)
+		} else if file.IsDir() {
+			newBase := fp + file.Name() + "/"
+			walkZip(wz, newBase, baseInZip+file.Name()+"/")
+		}
+	}
+}
+
+func zipRPC(w http.ResponseWriter, r *http.Request) {
+	zipPath := r.URL.Query().Get("zipPath")
+	zipName := r.URL.Query().Get("zipName")
+	defer exitPath(w, "zip", zipPath)
+	wz := zip.NewWriter(w)
+	w.Header().Add("Content-Disposition", "attachment; filename=\""+zipName+".zip\"")
+	walkZip(wz, checkPath(zipPath)+"/", "")
+	wz.Close()
+}
+
 func rpc(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var rpc rpcCall
+	defer exitPath(w, "rpc", rpc)
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(bodyBytes, &rpc)
-	defer exitPath(w, "rpc", rpc)
 
 	if rpc.Call == "mkdirp" {
 		err = os.MkdirAll(checkPath(rpc.Args[0]), os.ModePerm)
@@ -197,6 +227,8 @@ func main() {
 		http.HandleFunc(*extraPath+"rpc", rpc)
 		http.HandleFunc(*extraPath+"post", upload)
 	}
+
+	http.HandleFunc(*extraPath+"zip", zipRPC)
 	http.HandleFunc("/", doContent)
 	fs = http.StripPrefix(*extraPath, http.FileServer(http.Dir(initPath)))
 	fmt.Printf("Gossa startig on directory %s\nListening on http://%s:%s%s\n", initPath, *host, *port, *extraPath)
