@@ -8,23 +8,25 @@ gossa
 [![docker pulls](https://img.shields.io/docker/pulls/pldubouilh/gossa.svg?logo=docker)](https://hub.docker.com/r/pldubouilh/gossa)
 [![github downloads](https://img.shields.io/github/downloads/pldubouilh/gossa/total.svg?logo=github)](https://github.com/pldubouilh/gossa/releases)
 
-a fast and simple webserver for your files, that's dependency-free and with under 200 lines of code, easy to review.
+a fast and simple webserver for your files, that's dependency-free and with under 250 lines of code, easy to review.
 
 a [simple UI](https://github.com/pldubouilh/gossa-ui) comes as default, featuring :
 
-  * 🔍 files/directories browser
-  * 📩 drag-and-drop file/directory uploader
-  * 🚀 lightweight, default ui weights 110kB and prints in ms
-  * 🗺️ files handling - move/rename/delete
+  * 🔍 files/directories browser & handler
+  * 📩 drag-and-drop uploader
+  * 🚀 lightweight and dependency free
+  * 💾 90s web UI that prints in ms
   * 📸 picture browser
   * 📽️ video streaming
   * ✍️ simple text editor
-  * ⌨️ keyboard shortcuts
-  * 🥂 fast golang static server, easily fills available bandwidth
-  * 🔒 easy/secure multi account setup
+  * ⌨️ keyboard navigation
+  * 🥂 fast golang static server
+  * 🔒 easy/secure multi account setup, read-only mode
 
 ### build
 built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases) - or simply `make build` this repo.
+
+arch linux users can also install through the [user repos](https://aur.archlinux.org/packages/gossa/) - e.g. `yay -S gossa`
 
 ### usage
 ```sh
@@ -32,6 +34,9 @@ built blobs are available on the [release page](https://github.com/pldubouilh/go
 
 % ./gossa -h 192.168.100.33 ~/storage
 ```
+
+### shortcuts
+press `Ctrl/Cmd + h` to see all the UI/keyboard shortcuts.
 
 ### fancier setups
 release images are pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gossa), e.g. :
@@ -43,6 +48,4 @@ release images are pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gos
 
 in a do-one-thing-well mindset, HTTPS and authentication has been left to middlewares and proxies. [sample caddy configs](https://github.com/pldubouilh/gossa/blob/master/support/) are available to quickly setup multi users setups along with https.
 
-### shortcuts
-the default UI is fully usable by through keyboard/UI shortcuts - press `Ctrl/Cmd + h` to see them all.
 
