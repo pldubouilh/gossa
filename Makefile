@@ -2,7 +2,7 @@ build:
 	cp src/gossa.go gossa.go
 	make -C gossa-ui/
 	go vet && go fmt
-	CGO_ENABLED=0 go build gossa.go
+	CGO_ENABLED=0 go build
 	rm gossa.go
 
 install:
@@ -22,7 +22,16 @@ test:
 	-rm gossa_test.go
 	-@cd test-fixture && ln -s ../support .
 	cp src/gossa_test.go .
-	go test
+	-@killall gossa
+	make run &
+	go test -run TestNormal
+	killall gossa
+	make run-extra &
+	go test -run TestExtra
+	killall gossa
+	make run-ro &
+	go test -run TestRo
+	killall gossa
 
 watch:
 	ls src/* gossa-ui/* | entr -rc make build run
@@ -39,16 +48,11 @@ watch-test:
 build-all:
 	cp src/gossa.go gossa.go
 	make -C gossa-ui/
-	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build gossa.go
-	mv gossa gossa-linux64
-	env GOOS=linux GOARCH=arm go build gossa.go
-	mv gossa gossa-linux-arm
-	env GOOS=linux GOARCH=arm64 go build gossa.go
-	mv gossa gossa-linux-arm64
-	env GOOS=darwin GOARCH=amd64 go build gossa.go
-	mv gossa gossa-mac
-	env GOOS=windows GOARCH=amd64 go build gossa.go
-	mv gossa.exe gossa-windows.exe
+	env CGO_ENABLED=0  GOOS=linux    GOARCH=amd64  go build -o gossa-linux64
+	env CGO_ENABLED=0  GOOS=linux    GOARCH=arm    go build -o gossa-linux-arm
+	env CGO_ENABLED=0  GOOS=linux    GOARCH=arm64  go build -o gossa-linux-arm64
+	env CGO_ENABLED=0  GOOS=darwin   GOARCH=amd64  go build -o gossa-mac
+	env CGO_ENABLED=0  GOOS=windows  GOARCH=amd64  go build -o gossa-windows.exe
 	rm gossa.go
 
 clean:
