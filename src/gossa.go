@@ -231,7 +231,7 @@ func main() {
 	http.HandleFunc(*extraPath+"zip", zipRPC)
 	http.HandleFunc("/", doContent)
 	fs = http.StripPrefix(*extraPath, http.FileServer(http.Dir(initPath)))
-	fmt.Printf("Gossa startig on directory %s\nListening on http://%s:%s%s\n", initPath, *host, *port, *extraPath)
+	fmt.Printf("Gossa starting on directory %s\nListening on http://%s:%s%s\n", initPath, *host, *port, *extraPath)
 	err = http.ListenAndServe(*host+":"+*port, nil)
 	check(err)
 }
