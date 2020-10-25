@@ -2,7 +2,7 @@ build:
 	cp src/gossa.go gossa.go
 	make -C gossa-ui/
 	go vet && go fmt
-	CGO_ENABLED=0 go build
+	CGO_ENABLED=0 go build -o gossa
 	rm gossa.go
 
 install:
