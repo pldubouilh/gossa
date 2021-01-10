@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -80,7 +81,7 @@ func humanize(bytes int64) string {
 	}
 }
 
-func replyList(w http.ResponseWriter, fullPath string, path string) {
+func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path string) {
 	_files, err := ioutil.ReadDir(fullPath)
 	check(err)
 	sort.Slice(_files, func(i, j int) bool { return strings.ToLower(_files[i].Name()) < strings.ToLower(_files[j].Name()) })
@@ -116,7 +117,15 @@ func replyList(w http.ResponseWriter, fullPath string, path string) {
 		}
 	}
 
-	page.Execute(w, p)
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Add("Content-Encoding", "gzip")
+		gz, _ := gzip.NewWriterLevel(w, gzip.BestSpeed) // BestSpeed is much faster than Default on a very unscientific local test, and only ~30% larger (compression remains still very effective, ~6x)
+		defer gz.Close()
+		page.Execute(gz, p)
+	} else {
+		page.Execute(w, p)
+	}
 }
 
 func doContent(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +141,7 @@ func doContent(w http.ResponseWriter, r *http.Request) {
 	check(errStat)
 
 	if stat.IsDir() {
-		replyList(w, fullPath, path)
+		replyList(w, r, fullPath, path)
 	} else {
 		fs.ServeHTTP(w, r)
 	}

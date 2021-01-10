@@ -2,7 +2,7 @@ build:
 	cp src/gossa.go gossa.go
 	make -C gossa-ui/
 	go vet && go fmt
-	CGO_ENABLED=0 go build -o gossa
+	CGO_ENABLED=0 go build -ldflags "-s -w" -o gossa
 	rm gossa.go
 
 install:
@@ -48,11 +48,11 @@ watch-test:
 build-all:
 	cp src/gossa.go gossa.go
 	make -C gossa-ui/
-	env CGO_ENABLED=0  GOOS=linux    GOARCH=amd64  go build -o gossa-linux64
-	env CGO_ENABLED=0  GOOS=linux    GOARCH=arm    go build -o gossa-linux-arm
-	env CGO_ENABLED=0  GOOS=linux    GOARCH=arm64  go build -o gossa-linux-arm64
-	env CGO_ENABLED=0  GOOS=darwin   GOARCH=amd64  go build -o gossa-mac
-	env CGO_ENABLED=0  GOOS=windows  GOARCH=amd64  go build -o gossa-windows.exe
+	env CGO_ENABLED=0  GOOS=linux    GOARCH=amd64  go build -ldflags "-s -w" -o gossa-linux64
+	env CGO_ENABLED=0  GOOS=linux    GOARCH=arm    go build -ldflags "-s -w" -o gossa-linux-arm
+	env CGO_ENABLED=0  GOOS=linux    GOARCH=arm64  go build -ldflags "-s -w" -o gossa-linux-arm64
+	env CGO_ENABLED=0  GOOS=darwin   GOARCH=amd64  go build -ldflags "-s -w" -o gossa-mac
+	env CGO_ENABLED=0  GOOS=windows  GOARCH=amd64  go build -ldflags "-s -w" -o gossa-windows.exe
 	rm gossa.go
 
 clean:
@@ -64,3 +64,4 @@ clean:
 	-rm gossa-linux-arm64
 	-rm gossa-mac
 	-rm gossa-windows.exe
+
