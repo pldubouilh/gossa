@@ -22,6 +22,7 @@ a [simple UI](https://github.com/pldubouilh/gossa-ui) comes as default, featurin
   * ⌨️ keyboard navigation
   * 🥂 fast golang static server
   * 🔒 easy/secure multi account setup, read-only mode
+  * ✨ PWA enabled
 
 ### build
 built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases) - or simply `make build` this repo.
