@@ -1,8 +1,11 @@
+FLAGS := -ldflags "-s -w"
+NOCGO := CGO_ENABLED=0
+
 build:
 	cp src/gossa.go gossa.go
 	make -C gossa-ui/
 	go vet && go fmt
-	CGO_ENABLED=0 go build -ldflags "-s -w" -o gossa
+	${NOCGO} go build ${FLAGS} -o gossa
 	rm gossa.go
 
 install:
@@ -19,18 +22,22 @@ run-extra:
 
 test:
 	make build
-	-rm gossa_test.go
-	-@cd test-fixture && ln -s ../support .
+	rm -rf gossa_test.go
+	-@cd test-fixture && ln -s ../support .; true
 	cp src/gossa_test.go .
-	-@killall gossa
-	make run &
+
+	-@killall gossa; true
+	-make run &
 	go test -run TestNormal
+
 	killall gossa
-	make run-extra &
+	-make run-extra &
 	go test -run TestExtra
+
 	killall gossa
-	make run-ro &
+	-make run-ro &
 	go test -run TestRo
+
 	killall gossa
 
 watch:
@@ -48,11 +55,11 @@ watch-test:
 build-all:
 	cp src/gossa.go gossa.go
 	make -C gossa-ui/
-	env CGO_ENABLED=0  GOOS=linux    GOARCH=amd64  go build -ldflags "-s -w" -o gossa-linux64
-	env CGO_ENABLED=0  GOOS=linux    GOARCH=arm    go build -ldflags "-s -w" -o gossa-linux-arm
-	env CGO_ENABLED=0  GOOS=linux    GOARCH=arm64  go build -ldflags "-s -w" -o gossa-linux-arm64
-	env CGO_ENABLED=0  GOOS=darwin   GOARCH=amd64  go build -ldflags "-s -w" -o gossa-mac
-	env CGO_ENABLED=0  GOOS=windows  GOARCH=amd64  go build -ldflags "-s -w" -o gossa-windows.exe
+	${NOCGO}  GOOS=linux    GOARCH=amd64  go build ${FLAGS} -o build-all/gossa-linux64
+	${NOCGO}  GOOS=linux    GOARCH=arm    go build ${FLAGS} -o build-all/gossa-linux-arm
+	${NOCGO}  GOOS=linux    GOARCH=arm64  go build ${FLAGS} -o build-all/gossa-linux-arm64
+	${NOCGO}  GOOS=darwin   GOARCH=amd64  go build ${FLAGS} -o build-all/gossa-mac
+	${NOCGO}  GOOS=windows  GOARCH=amd64  go build ${FLAGS} -o build-all/gossa-windows.exe
 	rm gossa.go
 
 clean:
