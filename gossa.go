@@ -244,8 +244,8 @@ func checkPath(p string) string {
 
 	// panic if we had a error getting absolute path,
 	// ... or if path doesnt contain the prefix path we expect,
-	// ... or if we skipping hidden folders, and one is requested,
-	// ... or if we enable symlinks - but it resolves out of our predefined path.
+	// ... or if we're skipping hidden folders, and one is requested,
+	// ... or if we're skipping symlinks - and one resolves out of our predefined path.
 	if err != nil || !strings.HasPrefix(fp, initPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, initPath) {
 		panic(errors.New("invalid path"))
 	}
