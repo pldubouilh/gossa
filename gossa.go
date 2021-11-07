@@ -193,7 +193,10 @@ func walkZip(wz *zip.Writer, fp, baseInZip string) {
 		if !file.IsDir() {
 			data, err := ioutil.ReadFile(fp + file.Name())
 			check(err)
-			f, err := wz.Create(baseInZip + file.Name())
+			f, err := wz.CreateHeader(&zip.FileHeader{
+				Name:   baseInZip + file.Name(),
+				Method: zip.Store, // dont compress
+			})
 			check(err)
 			_, err = f.Write(data)
 			check(err)

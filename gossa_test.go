@@ -1,8 +1,8 @@
 package main
 
 import (
+	"archive/zip"
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -28,6 +28,13 @@ func getRaw(t *testing.T, url string) []byte {
 	body, err := ioutil.ReadAll(resp.Body)
 	dieMaybe(t, err)
 	return body
+}
+
+func getZip(t *testing.T, dest string) []*zip.File {
+	b := getRaw(t, dest)
+	archive, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
+	dieMaybe(t, err)
+	return archive.File
 }
 
 func get(t *testing.T, url string) string {
@@ -119,11 +126,10 @@ func doTestRegular(t *testing.T, url string, testExtra bool) {
 	}
 
 	// ~~~~~~~~~~~~~~~~~
-	fmt.Println("\r\n~~~~~~~~~~ test zip")
-	bodyRaw := getRaw(t, url+"zip?zipPath=%2F%E4%B8%AD%E6%96%87%2F&zipName=%E4%B8%AD%E6%96%87")
-	hashStr := fmt.Sprintf("%x", sha256.Sum256(bodyRaw))
-	if hashStr != "b02436a76b149e6c4458bbbe622ab7c5e789bb0d26b87f604cf0f989cfaf669f" {
-		t.Fatal("invalid zip checksum", hashStr)
+	fmt.Println("\r\n~~~~~~~~~~ test zipping of folder 中文")
+	files := getZip(t, url+"zip?zipPath=%2F%E4%B8%AD%E6%96%87%2F&zipName=%E4%B8%AD%E6%96%87")
+	if len(files) != 1 || files[0].Name != "檔案.html" {
+		t.Fatal("invalid zip generated")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
