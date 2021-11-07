@@ -1,0 +1,9 @@
+[Unit]
+Description=Gossa service for mytestfolder
+
+# note: its better to use absolute paths here
+[Service]
+ExecStart=gossa /home/joe/mytestfolder
+
+[Install]
+WantedBy=multi-user.target
