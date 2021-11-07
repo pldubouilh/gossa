@@ -117,7 +117,12 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 		if *skipHidden && strings.HasPrefix(el.Name(), ".") {
 			continue
 		}
-		el, _ = os.Stat(fullPath + "/" + el.Name())
+		el, err := os.Stat(fullPath + "/" + el.Name())
+		if err != nil {
+			log.Println("error - cant stat a file", err)
+			continue
+		}
+
 		href := url.PathEscape(el.Name())
 		if el.IsDir() && strings.HasPrefix(href, "/") {
 			href = strings.Replace(href, "/", "", 1)
@@ -134,7 +139,8 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 		w.Header().Set("Content-Type", "text/html")
 		w.Header().Add("Content-Encoding", "gzip")
-		gz, _ := gzip.NewWriterLevel(w, gzip.BestSpeed) // BestSpeed is much faster than Default on a very unscientific local test, and only ~30% larger (compression remains still very effective, ~6x)
+		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed) // BestSpeed is Much Faster than default - base on a very unscientific local test, and only ~30% larger (compression remains still very effective, ~6x)
+		check(err)
 		defer gz.Close()
 		templateParsed.Execute(gz, p)
 	} else {
@@ -162,11 +168,19 @@ func doContent(w http.ResponseWriter, r *http.Request) {
 }
 
 func upload(w http.ResponseWriter, r *http.Request) {
-	path, _ := url.PathUnescape(r.Header.Get("gossa-path"))
+	path := r.Header.Get("gossa-path")
 	defer exitPath(w, "upload", path)
-	reader, _ := r.MultipartReader()
-	part, _ := reader.NextPart()
-	dst, _ := os.Create(checkPath(path))
+
+	path, err := url.PathUnescape(path)
+	check(err)
+	reader, err := r.MultipartReader()
+	check(err)
+	part, err := reader.NextPart()
+	if err != nil && err != io.EOF { // errs EOF when no more parts to process
+		panic(err)
+	}
+	dst, err := os.Create(checkPath(path))
+	check(err)
 	io.Copy(dst, part)
 	w.Write([]byte("ok"))
 }
@@ -204,7 +218,8 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var rpc rpcCall
 	defer exitPath(w, "rpc", rpc)
-	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	check(err)
 	json.Unmarshal(bodyBytes, &rpc)
 
 	if rpc.Call == "mkdirp" {
@@ -222,8 +237,12 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 func checkPath(p string) string {
 	joined := filepath.Join(initPath, strings.TrimPrefix(p, *extraPath))
 	fp, err := filepath.Abs(joined)
-	sl, _ := filepath.EvalSymlinks(fp)
+	sl, _ := filepath.EvalSymlinks(fp) // err skipped as it would error if no symlink. The actual behaviour is tested below
 
+	// panic if we had a error getting absolute path,
+	// ... or if path doesnt contain the prefix path we expect,
+	// ... or if we skipping hidden folders, and one is requested,
+	// ... or if we enable symlinks - but it resolves out of our predefined path.
 	if err != nil || !strings.HasPrefix(fp, initPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, initPath) {
 		panic(errors.New("invalid path"))
 	}
