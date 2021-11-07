@@ -3,6 +3,8 @@ package main
 import (
 	"archive/zip"
 	"compress/gzip"
+	_ "embed"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -31,7 +33,19 @@ var ro = flag.Bool("ro", false, "read only mode (no upload, rename, move, etc...
 var initPath = "."
 
 var fs http.Handler
-var page, _ = template.New("pageTemplate").Parse(`template_will_be_here`)
+
+//go:embed gossa-ui/ui.tmpl
+var templateStr string
+var templateParsed *template.Template
+
+//go:embed gossa-ui/script.js
+var scriptJs string
+
+//go:embed gossa-ui/style.css
+var styleCss string
+
+//go:embed gossa-ui/favicon.svg
+var faviconSvg []byte
 
 type rowTemplate struct {
 	Name string
@@ -122,9 +136,9 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 		w.Header().Add("Content-Encoding", "gzip")
 		gz, _ := gzip.NewWriterLevel(w, gzip.BestSpeed) // BestSpeed is much faster than Default on a very unscientific local test, and only ~30% larger (compression remains still very effective, ~6x)
 		defer gz.Close()
-		page.Execute(gz, p)
+		templateParsed.Execute(gz, p)
 	} else {
-		page.Execute(w, p)
+		templateParsed.Execute(w, p)
 	}
 }
 
@@ -230,6 +244,12 @@ func main() {
 	}
 
 	initPath, err = filepath.Abs(initPath)
+	check(err)
+
+	templateStr = strings.Replace(templateStr, "css_will_be_here", styleCss, 1)
+	templateStr = strings.Replace(templateStr, "js_will_be_here", scriptJs, 1)
+	templateStr = strings.Replace(templateStr, "favicon_will_be_here", base64.StdEncoding.EncodeToString(faviconSvg), 2)
+	templateParsed, err = template.New("").Parse(templateStr)
 	check(err)
 
 	if !*ro {
