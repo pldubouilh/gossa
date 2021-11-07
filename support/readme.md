@@ -1,4 +1,20 @@
-## docker
+## run as a service
+
+use the `service` file provided here to use as a systemd service.
+
+```sh
+# edit service file
+
+# copy over our service, and start. Notice no sudo with systemctl command !
+% mkdir -p ~/.config/systemd/user/
+% cp service ~/.config/systemd/user/gossa.service
+% systemctl --user start gossa
+
+# enable at boot time
+% systemctl --user start gossa
+```
+
+## run with docker
 
 the master branch is automatically built and pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gossa) under `pldubouilh/gossa`.
 
