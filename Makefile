@@ -51,7 +51,8 @@ build-all:
 	${NOCGO}  GOOS=linux    GOARCH=amd64  go build ${FLAGS} -o build-all/gossa-linux64
 	${NOCGO}  GOOS=linux    GOARCH=arm    go build ${FLAGS} -o build-all/gossa-linux-arm
 	${NOCGO}  GOOS=linux    GOARCH=arm64  go build ${FLAGS} -o build-all/gossa-linux-arm64
-	${NOCGO}  GOOS=darwin   GOARCH=amd64  go build ${FLAGS} -o build-all/gossa-mac
+	${NOCGO}  GOOS=darwin   GOARCH=amd64  go build ${FLAGS} -o build-all/gossa-mac64
+	${NOCGO}  GOOS=darwin   GOARCH=arm64  go build ${FLAGS} -o build-all/gossa-mac-arm64
 	${NOCGO}  GOOS=windows  GOARCH=amd64  go build ${FLAGS} -o build-all/gossa-windows.exe
 
 clean:
