@@ -12,6 +12,7 @@ import (
 	"html"
 	"html/template"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -32,7 +33,7 @@ var skipHidden = flag.Bool("k", true, "\nskip hidden files")
 var ro = flag.Bool("ro", false, "read only mode (no upload, rename, move, etc...)")
 var initPath = "."
 
-var fs http.Handler
+var handler http.Handler
 
 //go:embed gossa-ui/ui.tmpl
 var templateStr string
@@ -115,8 +116,12 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 
 	for _, el := range _files {
 		if *skipHidden && strings.HasPrefix(el.Name(), ".") {
-			continue
+			continue // dont print hidden files if we're not allowed
 		}
+		if !*symlinks && el.Mode()&os.ModeSymlink != 0 {
+			continue // dont print symlinks if were not allowed
+		}
+
 		el, err := os.Stat(fullPath + "/" + el.Name())
 		if err != nil {
 			log.Println("error - cant stat a file", err)
@@ -149,21 +154,21 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 }
 
 func doContent(w http.ResponseWriter, r *http.Request) {
-	if !strings.HasPrefix(r.URL.Path, *extraPath) {
-		http.Redirect(w, r, *extraPath, 302)
+	if !strings.HasPrefix(r.URL.Path, *extraPath) { // redir when were not hitting the supplementary path if one is set
+		http.Redirect(w, r, *extraPath, http.StatusFound)
 		return
 	}
 
 	path := html.UnescapeString(r.URL.Path)
 	defer exitPath(w, "get content", path)
-	fullPath := checkPath(path)
+	fullPath := enforcePath(path)
 	stat, errStat := os.Stat(fullPath)
 	check(errStat)
 
 	if stat.IsDir() {
 		replyList(w, r, fullPath, path)
 	} else {
-		fs.ServeHTTP(w, r)
+		handler.ServeHTTP(w, r)
 	}
 }
 
@@ -177,44 +182,60 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	check(err)
 	part, err := reader.NextPart()
 	if err != nil && err != io.EOF { // errs EOF when no more parts to process
-		panic(err)
+		check(err)
 	}
-	dst, err := os.Create(checkPath(path))
+	dst, err := os.Create(enforcePath(path))
 	check(err)
 	io.Copy(dst, part)
 	w.Write([]byte("ok"))
-}
-
-func walkZip(wz *zip.Writer, fp, baseInZip string) {
-	files, err := ioutil.ReadDir(fp)
-	check(err)
-
-	for _, file := range files {
-		if !file.IsDir() {
-			data, err := ioutil.ReadFile(fp + file.Name())
-			check(err)
-			f, err := wz.CreateHeader(&zip.FileHeader{
-				Name:   baseInZip + file.Name(),
-				Method: zip.Store, // dont compress
-			})
-			check(err)
-			_, err = f.Write(data)
-			check(err)
-		} else if file.IsDir() {
-			newBase := fp + file.Name() + "/"
-			walkZip(wz, newBase, baseInZip+file.Name()+"/")
-		}
-	}
 }
 
 func zipRPC(w http.ResponseWriter, r *http.Request) {
 	zipPath := r.URL.Query().Get("zipPath")
 	zipName := r.URL.Query().Get("zipName")
 	defer exitPath(w, "zip", zipPath)
-	wz := zip.NewWriter(w)
+	zipFullPath := enforcePath(zipPath)
+	_, err := os.Lstat(zipFullPath)
+	if err != nil {
+		panic("zip path doesnt exist")
+	}
+
 	w.Header().Add("Content-Disposition", "attachment; filename=\""+zipName+".zip\"")
-	walkZip(wz, checkPath(zipPath)+"/", "")
-	wz.Close()
+	zipWriter := zip.NewWriter(w)
+	defer zipWriter.Close()
+
+	err = filepath.Walk(zipFullPath, func(path string, f fs.FileInfo, err error) error {
+		check(err)
+		if f.IsDir() {
+			return nil
+		}
+
+		rel, err := filepath.Rel(zipFullPath, path)
+		check(err)
+
+		if *skipHidden && strings.HasPrefix(rel, ".") {
+			return nil // hidden files not allowed
+		}
+
+		if f.Mode()&os.ModeSymlink != 0 {
+			panic(errors.New("symlink not allowed in zip downloads")) // filepath.Walk doesnt support symlinks
+		}
+
+		header, err := zip.FileInfoHeader(f)
+		check(err)
+		header.Name = filepath.ToSlash(rel) // make the paths consistent between OSes
+		header.Method = zip.Store
+		headerWriter, err := zipWriter.CreateHeader(header)
+		check(err)
+		file, err := os.Open(path)
+		check(err)
+		defer file.Close()
+		_, err = io.Copy(headerWriter, file)
+		check(err)
+		return nil
+	})
+
+	check(err)
 }
 
 func rpc(w http.ResponseWriter, r *http.Request) {
@@ -226,26 +247,26 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(bodyBytes, &rpc)
 
 	if rpc.Call == "mkdirp" {
-		err = os.MkdirAll(checkPath(rpc.Args[0]), os.ModePerm)
+		err = os.MkdirAll(enforcePath(rpc.Args[0]), os.ModePerm)
 	} else if rpc.Call == "mv" {
-		err = os.Rename(checkPath(rpc.Args[0]), checkPath(rpc.Args[1]))
+		err = os.Rename(enforcePath(rpc.Args[0]), enforcePath(rpc.Args[1]))
 	} else if rpc.Call == "rm" {
-		err = os.RemoveAll(checkPath(rpc.Args[0]))
+		err = os.RemoveAll(enforcePath(rpc.Args[0]))
 	}
 
 	check(err)
 	w.Write([]byte("ok"))
 }
 
-func checkPath(p string) string {
+func enforcePath(p string) string {
 	joined := filepath.Join(initPath, strings.TrimPrefix(p, *extraPath))
 	fp, err := filepath.Abs(joined)
-	sl, _ := filepath.EvalSymlinks(fp) // err skipped as it would error if no symlink. The actual behaviour is tested below
+	sl, _ := filepath.EvalSymlinks(fp) // err skipped as it would error for unexistent files (RPC check). The actual behaviour is tested below
 
 	// panic if we had a error getting absolute path,
 	// ... or if path doesnt contain the prefix path we expect,
 	// ... or if we're skipping hidden folders, and one is requested,
-	// ... or if we're skipping symlinks - and one resolves out of our predefined path.
+	// ... or if we're skipping symlinks, path exists, and a symlink out of bound requested
 	if err != nil || !strings.HasPrefix(fp, initPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, initPath) {
 		panic(errors.New("invalid path"))
 	}
@@ -281,7 +302,7 @@ func main() {
 
 	http.HandleFunc(*extraPath+"zip", zipRPC)
 	http.HandleFunc("/", doContent)
-	fs = http.StripPrefix(*extraPath, http.FileServer(http.Dir(initPath)))
+	handler = http.StripPrefix(*extraPath, http.FileServer(http.Dir(initPath)))
 	fmt.Printf("Gossa starting on directory %s\nListening on http://%s:%s%s\n", initPath, *host, *port, *extraPath)
 	err = http.ListenAndServe(*host+":"+*port, nil)
 	check(err)
