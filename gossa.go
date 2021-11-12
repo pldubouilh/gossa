@@ -31,7 +31,7 @@ var symlinks = flag.Bool("symlinks", false, "follow symlinks \033[4mWARNING\033[
 var verb = flag.Bool("verb", false, "verbosity")
 var skipHidden = flag.Bool("k", true, "\nskip hidden files")
 var ro = flag.Bool("ro", false, "read only mode (no upload, rename, move, etc...)")
-var initPath = "."
+var rootPath = ""
 
 var handler http.Handler
 
@@ -196,10 +196,7 @@ func zipRPC(w http.ResponseWriter, r *http.Request) {
 	defer exitPath(w, "zip", zipPath)
 	zipFullPath := enforcePath(zipPath)
 	_, err := os.Lstat(zipFullPath)
-	if err != nil {
-		panic("zip path doesnt exist")
-	}
-
+	check(err)
 	w.Header().Add("Content-Disposition", "attachment; filename=\""+zipName+".zip\"")
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
@@ -212,11 +209,9 @@ func zipRPC(w http.ResponseWriter, r *http.Request) {
 
 		rel, err := filepath.Rel(zipFullPath, path)
 		check(err)
-
 		if *skipHidden && strings.HasPrefix(rel, ".") {
 			return nil // hidden files not allowed
 		}
-
 		if f.Mode()&os.ModeSymlink != 0 {
 			panic(errors.New("symlink not allowed in zip downloads")) // filepath.Walk doesnt support symlinks
 		}
@@ -259,7 +254,7 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 }
 
 func enforcePath(p string) string {
-	joined := filepath.Join(initPath, strings.TrimPrefix(p, *extraPath))
+	joined := filepath.Join(rootPath, strings.TrimPrefix(p, *extraPath))
 	fp, err := filepath.Abs(joined)
 	sl, _ := filepath.EvalSymlinks(fp) // err skipped as it would error for unexistent files (RPC check). The actual behaviour is tested below
 
@@ -267,7 +262,7 @@ func enforcePath(p string) string {
 	// ... or if path doesnt contain the prefix path we expect,
 	// ... or if we're skipping hidden folders, and one is requested,
 	// ... or if we're skipping symlinks, path exists, and a symlink out of bound requested
-	if err != nil || !strings.HasPrefix(fp, initPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, initPath) {
+	if err != nil || !strings.HasPrefix(fp, rootPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, rootPath) {
 		panic(errors.New("invalid path"))
 	}
 
@@ -275,18 +270,16 @@ func enforcePath(p string) string {
 }
 
 func main() {
-	var err error
-	flag.Usage = func() {
+	if flag.Parse(); len(flag.Args()) > 0 {
+		rootPath = flag.Args()[0]
+	} else {
 		fmt.Printf("\nusage: ./gossa ~/directory-to-share\n\n")
 		flag.PrintDefaults()
+		os.Exit(1)
 	}
 
-	flag.Parse()
-	if len(flag.Args()) > 0 {
-		initPath = flag.Args()[0]
-	}
-
-	initPath, err = filepath.Abs(initPath)
+	var err error
+	rootPath, err = filepath.Abs(rootPath)
 	check(err)
 
 	templateStr = strings.Replace(templateStr, "css_will_be_here", styleCss, 1)
@@ -299,11 +292,10 @@ func main() {
 		http.HandleFunc(*extraPath+"rpc", rpc)
 		http.HandleFunc(*extraPath+"post", upload)
 	}
-
 	http.HandleFunc(*extraPath+"zip", zipRPC)
 	http.HandleFunc("/", doContent)
-	handler = http.StripPrefix(*extraPath, http.FileServer(http.Dir(initPath)))
-	fmt.Printf("Gossa starting on directory %s\nListening on http://%s:%s%s\n", initPath, *host, *port, *extraPath)
+	handler = http.StripPrefix(*extraPath, http.FileServer(http.Dir(rootPath)))
+	fmt.Printf("Gossa starting on directory %s\nListening on http://%s:%s%s\n", rootPath, *host, *port, *extraPath)
 	err = http.ListenAndServe(*host+":"+*port, nil)
 	check(err)
 }
