@@ -1,4 +1,4 @@
-FLAGS := -ldflags "-s -w"
+FLAGS := -ldflags "-s -w" -trimpath
 NOCGO := CGO_ENABLED=0
 
 build:
@@ -17,7 +17,10 @@ run-ro:
 run-extra:
 	./gossa -verb=true -prefix="/fancy-path/" -k=false -symlinks=true test-fixture
 
- test:
+ci: build-all test
+	echo "done"
+
+test:
 	-@cd test-fixture && ln -s ../support .; true
 	go test -cover -c -tags testrunmain
 
@@ -52,13 +55,14 @@ watch-ro:
 watch-test:
 	ls gossa.go gossa_test.go gossa-ui/* | entr -rc make test
 
-build-all:
-	${NOCGO}  GOOS=linux    GOARCH=amd64  go build ${FLAGS} -o build-all/gossa-linux-x64
-	${NOCGO}  GOOS=linux    GOARCH=arm    go build ${FLAGS} -o build-all/gossa-linux-arm
-	${NOCGO}  GOOS=linux    GOARCH=arm64  go build ${FLAGS} -o build-all/gossa-linux-arm64
-	${NOCGO}  GOOS=darwin   GOARCH=amd64  go build ${FLAGS} -o build-all/gossa-mac-x64
-	${NOCGO}  GOOS=darwin   GOARCH=arm64  go build ${FLAGS} -o build-all/gossa-mac-arm64
-	${NOCGO}  GOOS=windows  GOARCH=amd64  go build ${FLAGS} -o build-all/gossa-windows.exe
+build-all: build
+	${NOCGO}  GOOS=linux    GOARCH=amd64  go build ${FLAGS} -o builds/gossa-linux-x64
+	${NOCGO}  GOOS=linux    GOARCH=arm    go build ${FLAGS} -o builds/gossa-linux-arm
+	${NOCGO}  GOOS=linux    GOARCH=arm64  go build ${FLAGS} -o builds/gossa-linux-arm64
+	${NOCGO}  GOOS=darwin   GOARCH=amd64  go build ${FLAGS} -o builds/gossa-mac-x64
+	${NOCGO}  GOOS=darwin   GOARCH=arm64  go build ${FLAGS} -o builds/gossa-mac-arm64
+	${NOCGO}  GOOS=windows  GOARCH=amd64  go build ${FLAGS} -o builds/gossa-windows.exe
+	sha256sum builds/*
 
 clean:
 	-rm gossa

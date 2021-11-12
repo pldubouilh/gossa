@@ -18,5 +18,5 @@ jobs:
         submodules: true
 
     - name: Run
-      run: make test
+      run: make ci
 
