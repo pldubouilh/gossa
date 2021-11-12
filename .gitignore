@@ -5,7 +5,9 @@ gossa-linux-arm64
 gossa-mac
 gossa-windows.exe
 build-all
+gossa.test
 
+*.out
 .vscode
 test-fixture/*
 test-fixture/*/*

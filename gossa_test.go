@@ -30,11 +30,17 @@ func getRaw(t *testing.T, url string) []byte {
 	return body
 }
 
-func getZip(t *testing.T, dest string) []*zip.File {
+func getZip(t *testing.T, needle string, dest string) (int, bool) {
 	b := getRaw(t, dest)
-	archive, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
+	unzipped, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
 	dieMaybe(t, err)
-	return archive.File
+	length := len(unzipped.File)
+	for _, file := range unzipped.File {
+		if file.Name == needle {
+			return length, true
+		}
+	}
+	return length, false
 }
 
 func get(t *testing.T, url string) string {
@@ -104,6 +110,13 @@ func doTestRegular(t *testing.T, url string, testExtra bool) {
 	fetchAndTestDefault(t, url)
 
 	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test fetching another page")
+	body0 = get(t, url+"/hols")
+	if !strings.Contains(body0, "glasgow.jpg") {
+		t.Fatal("fetching a subfolder failed")
+	}
+
+	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test fetching an invalid path - redirected to root")
 	fetchAndTestDefault(t, url+"../../")
 	fetchAndTestDefault(t, url+"hols/../../")
@@ -127,9 +140,18 @@ func doTestRegular(t *testing.T, url string, testExtra bool) {
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test zipping of folder 中文")
-	files := getZip(t, url+"zip?zipPath=%2F%E4%B8%AD%E6%96%87%2F&zipName=%E4%B8%AD%E6%96%87")
-	if len(files) != 1 || files[0].Name != "檔案.html" {
+	len, foundFile := getZip(t, "檔案.html", url+"zip?zipPath=%2F%E4%B8%AD%E6%96%87%2F&zipName=%E4%B8%AD%E6%96%87")
+	if len != 1 || !foundFile {
 		t.Fatal("invalid zip generated")
+	}
+
+	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test zipping of folder with hidden file")
+	_, foundHidden := getZip(t, ".hidden-folder/some-file", url+"zip?zipPath=%2fhols%2f&zipName=hols")
+	if foundHidden && !testExtra {
+		t.Fatal("invalid zip generated - shouldnt contain hidden folder")
+	} else if !foundHidden && testExtra {
+		t.Fatal("invalid zip generated - should contain hidden folder")
 	}
 
 	// ~~~~~~~~~~~~~~~~~
@@ -343,4 +365,8 @@ func TestExtra(t *testing.T) {
 func TestRo(t *testing.T) {
 	fmt.Println("========== testing read only ============")
 	doTestReadonly(t, "http://127.0.0.1:8001/")
+}
+
+func TestRunMain(t *testing.T) {
+	main()
 }
