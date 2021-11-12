@@ -1,0 +1,30 @@
+name: deploy
+on:
+  push:
+    branches: [ master ]
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Set env
+      run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
+    - name: docker
+      env:
+        DOCKER_USER: ${{secrets.DOCKER_USER}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: |
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+        docker build -t pldubouilh/gossa:latest -t pldubouilh/gossa:$GIT_TAG -f support/build.Dockerfile .
+        docker push pldubouilh/gossa:latest
+        docker push pldubouilh/gossa:$GIT_TAG
+
