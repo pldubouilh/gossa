@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"context"
 	_ "embed"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -27,49 +26,8 @@ import (
 	"time"
 )
 
-var host = flag.String("h", "127.0.0.1", "host to listen to")
-var port = flag.String("p", "8001", "port to listen to")
-var extraPath = flag.String("prefix", "/", "url prefix at which gossa can be reached, e.g. /gossa/ (slashes of importance)")
-var symlinks = flag.Bool("symlinks", false, "follow symlinks \033[4mWARNING\033[0m: symlinks will by nature allow to escape the defined path (default: false)")
-var verb = flag.Bool("verb", false, "verbosity")
-var skipHidden = flag.Bool("k", true, "\nskip hidden files")
-var ro = flag.Bool("ro", false, "read only mode (no upload, rename, move, etc...)")
 var rootPath = ""
-
 var handler http.Handler
-
-//go:embed gossa-ui/ui.tmpl
-var templateStr string
-var templateParsed *template.Template
-
-//go:embed gossa-ui/script.js
-var scriptJs string
-
-//go:embed gossa-ui/style.css
-var styleCss string
-
-//go:embed gossa-ui/favicon.svg
-var faviconSvg []byte
-
-type rowTemplate struct {
-	Name string
-	Href template.HTML
-	Size string
-	Ext  string
-}
-
-type pageTemplate struct {
-	Title       template.HTML
-	ExtraPath   template.HTML
-	Ro          bool
-	RowsFiles   []rowTemplate
-	RowsFolders []rowTemplate
-}
-
-type rpcCall struct {
-	Call string   `json:"call"`
-	Args []string `json:"args"`
-}
 
 func check(e error) {
 	if e != nil {
@@ -284,13 +242,6 @@ func main() {
 	var err error
 	rootPath, err = filepath.Abs(rootPath)
 	check(err)
-
-	templateStr = strings.Replace(templateStr, "css_will_be_here", styleCss, 1)
-	templateStr = strings.Replace(templateStr, "js_will_be_here", scriptJs, 1)
-	templateStr = strings.Replace(templateStr, "favicon_will_be_here", base64.StdEncoding.EncodeToString(faviconSvg), 2)
-	templateParsed, err = template.New("").Parse(templateStr)
-	check(err)
-
 	server := &http.Server{Addr: *host + ":" + *port, Handler: handler}
 
 	go func() {
