@@ -17,25 +17,28 @@ run-ro:
 run-extra:
 	./gossa -verb=true -prefix="/fancy-path/" -k=false -symlinks=true test-fixture
 
-test:
-	make build
+ test:
 	-@cd test-fixture && ln -s ../support .; true
+	go test -cover -c -tags testrunmain
 
-	-@killall gossa; true
-	-make run &
+	timeout -s SIGINT 3 ./gossa.test -test.coverprofile=normal.out -test.run '^TestRunMain' -verb=true test-fixture &
+	sleep 2
 	go test -run TestNormal
-
-	killall gossa
 	sleep 1
-	-make run-extra &
+
+	timeout -s SIGINT 3 ./gossa.test -test.coverprofile=extra.out -test.run '^TestRunMain' -prefix='/fancy-path/' -k=false -symlinks=true test-fixture &
+	sleep 2
 	go test -run TestExtra
-
-	killall gossa
 	sleep 1
-	-make run-ro &
-	go test -run TestRo
 
-	killall gossa
+	timeout -s SIGINT 3 ./gossa.test -test.coverprofile=ro.out -test.run '^TestRunMain' -ro=true test-fixture &
+	sleep 2
+	go test -run TestRo
+	sleep 1
+
+	# gocovmerge ro.out extra.out normal.out > all.out
+	# go tool cover -html all.out
+	# go tool cover -func=all.out | grep main | grep '9.\..\%'
 
 watch:
 	ls gossa.go gossa_test.go gossa-ui/* | entr -rc make build run

@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"compress/gzip"
+	"context"
 	_ "embed"
 	"encoding/base64"
 	"encoding/json"
@@ -18,10 +19,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var host = flag.String("h", "127.0.0.1", "host to listen to")
@@ -209,7 +212,7 @@ func zipRPC(w http.ResponseWriter, r *http.Request) {
 
 		rel, err := filepath.Rel(zipFullPath, path)
 		check(err)
-		if *skipHidden && strings.HasPrefix(rel, ".") {
+		if *skipHidden && (strings.HasPrefix(rel, ".") || strings.HasPrefix(f.Name(), ".")) {
 			return nil // hidden files not allowed
 		}
 		if f.Mode()&os.ModeSymlink != 0 {
@@ -288,6 +291,17 @@ func main() {
 	templateParsed, err = template.New("").Parse(templateStr)
 	check(err)
 
+	server := &http.Server{Addr: *host + ":" + *port, Handler: handler}
+
+	go func() {
+		sigchan := make(chan os.Signal, 1)
+		signal.Notify(sigchan, os.Interrupt)
+		<-sigchan
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		server.Shutdown(ctx)
+	}()
+
 	if !*ro {
 		http.HandleFunc(*extraPath+"rpc", rpc)
 		http.HandleFunc(*extraPath+"post", upload)
@@ -296,6 +310,7 @@ func main() {
 	http.HandleFunc("/", doContent)
 	handler = http.StripPrefix(*extraPath, http.FileServer(http.Dir(rootPath)))
 	fmt.Printf("Gossa starting on directory %s\nListening on http://%s:%s%s\n", rootPath, *host, *port, *extraPath)
-	err = http.ListenAndServe(*host+":"+*port, nil)
-	check(err)
+	if err = server.ListenAndServe(); err != http.ErrServerClosed {
+		check(err)
+	}
 }
