@@ -26,10 +26,12 @@ test:
 	go test -run TestNormal
 
 	killall gossa
+	sleep 1
 	-make run-extra &
 	go test -run TestExtra
 
 	killall gossa
+	sleep 1
 	-make run-ro &
 	go test -run TestRo
 

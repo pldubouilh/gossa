@@ -135,6 +135,7 @@ func doTestRegular(t *testing.T, url string, testExtra bool) {
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test zip invalid path")
 	body0 = get(t, url+"zip?zipPath=%2Ftmp&zipName=subdir")
+	println(body0)
 	if body0 != `error` {
 		t.Fatal("zip passed for invalid path")
 	}
@@ -200,12 +201,20 @@ func doTestRegular(t *testing.T, url string, testExtra bool) {
 
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test symlink, should succeed: ", testExtra)
-	body0 = get(t, url+"/support/readme.md")
-	hasReadme := strings.Contains(body0, `the master branch is automatically built and pushed`)
+	body0 = get(t, url+"/support/")
+	hasListing := strings.Contains(body0, `readme.md`)
+	body1 = get(t, url+"/support/readme.md")
+	hasReadme := strings.Contains(body1, `the master branch is automatically built and pushed`)
+
 	if !testExtra && hasReadme {
-		t.Fatal("error symlink reached where illegal")
+		t.Fatal("error symlink file reached where illegal")
 	} else if testExtra && !hasReadme {
-		t.Fatal("error symlink unreachable")
+		t.Fatal("error symlink file unreachable")
+	}
+	if !testExtra && hasListing {
+		t.Fatal("error symlink folder reached where illegal")
+	} else if testExtra && !hasListing {
+		t.Fatal("error symlink folder unreachable")
 	}
 
 	if testExtra {
@@ -298,7 +307,7 @@ func doTestReadonly(t *testing.T, url string) {
 	path = "%2F%E1%84%92%E1%85%A1%20%E1%84%92%E1%85%A1" // "하 하" encoded
 	payload = "123 하"
 	body0 = postDummyFile(t, url, path, payload)
-	body1 = get(t, url+path)
+	get(t, url+path)
 	if body0 == `ok` {
 		t.Fatal("post file passed - should not be allowed")
 	}
@@ -306,7 +315,7 @@ func doTestReadonly(t *testing.T, url string) {
 	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test mv rpc")
 	body0 = postJSON(t, url+"rpc", `{"call":"mv","args":["/AAA", "/hols/AAA"]}`)
-	body1 = fetchAndTestDefault(t, url)
+	fetchAndTestDefault(t, url)
 	if body0 == `ok` {
 		t.Fatal("mv rpc passed - should not be allowed")
 	}
