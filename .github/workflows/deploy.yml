@@ -35,5 +35,5 @@ jobs:
         file: support/build.Dockerfile
         push: true
         platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
-        tags: pldubouilh/gossa:latest,pldubouilh/gossa:$GIT_TAG
+        tags: pldubouilh/gossa:latest,pldubouilh/gossa:${{github.ref_name}}
 
