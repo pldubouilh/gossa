@@ -11,7 +11,7 @@ use the `service` file provided here to use as a systemd service.
 % systemctl --user start gossa
 
 # enable at boot time
-% systemctl --user start gossa
+% systemctl --user enable gossa
 ```
 
 ## run with docker

@@ -1,9 +1,13 @@
 [Unit]
 Description=Gossa service for mytestfolder
+Wants=network-online.target
+After=network-online.target
 
 # note: its better to use absolute paths here
 [Service]
 ExecStart=gossa /home/joe/mytestfolder
+Restart=always
+RestartSec=30
 
 [Install]
 WantedBy=multi-user.target
