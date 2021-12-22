@@ -41,11 +41,6 @@ type pageTemplate struct {
 	RowsFolders []rowTemplate
 }
 
-type rpcCall struct {
-	Call string   `json:"call"`
-	Args []string `json:"args"`
-}
-
 var host = flag.String("h", "127.0.0.1", "host to listen to")
 var port = flag.String("p", "8001", "port to listen to")
 var extraPath = flag.String("prefix", "/", "url prefix at which gossa can be reached, e.g. /gossa/ (slashes of importance)")

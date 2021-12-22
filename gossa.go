@@ -3,7 +3,6 @@ package main
 import (
 	"archive/zip"
 	"compress/gzip"
-	"context"
 	_ "embed"
 	"encoding/json"
 	"errors"
@@ -18,13 +17,16 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 )
+
+type rpcCall struct {
+	Call string   `json:"call"`
+	Args []string `json:"args"`
+}
 
 var rootPath = ""
 var handler http.Handler
@@ -244,14 +246,15 @@ func main() {
 	check(err)
 	server := &http.Server{Addr: *host + ":" + *port, Handler: handler}
 
-	go func() {
-		sigchan := make(chan os.Signal, 1)
-		signal.Notify(sigchan, os.Interrupt)
-		<-sigchan
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		server.Shutdown(ctx)
-	}()
+	// clean shutdown - used only for coverage test
+	// go func() {
+	// 	sigchan := make(chan os.Signal, 1)
+	// 	signal.Notify(sigchan, os.Interrupt)
+	// 	<-sigchan
+	// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// 	defer cancel()
+	// 	server.Shutdown(ctx)
+	// }()
 
 	if !*ro {
 		http.HandleFunc(*extraPath+"rpc", rpc)
@@ -260,6 +263,7 @@ func main() {
 	http.HandleFunc(*extraPath+"zip", zipRPC)
 	http.HandleFunc("/", doContent)
 	handler = http.StripPrefix(*extraPath, http.FileServer(http.Dir(rootPath)))
+
 	fmt.Printf("Gossa starting on directory %s\nListening on http://%s:%s%s\n", rootPath, *host, *port, *extraPath)
 	if err = server.ListenAndServe(); err != http.ErrServerClosed {
 		check(err)

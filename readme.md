@@ -14,14 +14,13 @@ a [simple UI](https://github.com/pldubouilh/gossa-ui) comes as default, featurin
   * 🔍 files/directories browser & handler
   * 📩 drag-and-drop uploader
   * 🥂 fast golang static server
-  * 💾 90s web UI that prints in ms
-  * 📸 picture browser
-  * 📽️ video streaming
-  * ✍️ simple text/note editor
+  * 💾 90s web UI that prints in milliseconds
+  * 📸 video streaming & picture browser
+  * ✍️ simple note editor
   * ⌨️ keyboard navigation
-  * 🚀 lightweight codebase and dependency free
+  * 🚀 lightweight and dependency free codebase
   * 🔒 >95% test coverage and reproducible builds
-  * 💑 easy/secure multi account setup, read-only mode
+  * 💑 easy multi account setup, read-only mode
   * ✨ PWA enabled
 
 ### build
