@@ -1,8 +1,8 @@
-FROM golang:latest as builder
+FROM golang:1.18 as builder
 COPY . /gossaSrc
 RUN cd /gossaSrc && make
 
-FROM alpine
+FROM alpine:3.15
 ENV UID="1000" GID="1000" HOST="0.0.0.0" PORT="8001" PREFIX="/" FOLLOW_SYMLINKS="false" SKIP_HIDDEN_FILES="true" DATADIR="/shared" READONLY="false" VERB="false"
 EXPOSE 8001
 RUN apk add --no-cache su-exec
