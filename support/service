@@ -3,9 +3,9 @@ Description=Gossa service for mytestfolder
 Wants=network-online.target
 After=network-online.target
 
-# note: its better to use absolute paths here
+# note: absolute paths are necessary here
 [Service]
-ExecStart=gossa /home/joe/mytestfolder
+ExecStart=/usr/bin/gossa /home/joe/mytestfolder
 Restart=always
 RestartSec=30
 
