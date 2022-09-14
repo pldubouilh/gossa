@@ -1,0 +1,39 @@
+name: rc
+
+on:
+  push:
+    branches:
+      - 'rc/**'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.19.1
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+
+    - name: Run
+      run: make ci
+
+    - name: Build all artifacts
+      run: make build-all
+
+    - name: "Release gh release prerelease"
+      uses: ncipollo/release-action@58ae73b360456532aafd58ee170c045abbeaee37
+      with:
+        allowUpdates: true
+        prerelease: true
+        tag: "rc"
+        artifacts: "builds/*"
+        token: ${{ secrets.GITHUB_TOKEN }}
+

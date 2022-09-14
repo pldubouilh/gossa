@@ -14,6 +14,12 @@ jobs:
       with:
         submodules: true
 
+    - name: Set up Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.19.1
+      id: go
+
     - name: Set env
       run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
 
@@ -29,7 +35,7 @@ jobs:
         username: ${{ secrets.DOCKER_USER }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push
+    - name: Build and release on dockerhub
       uses: docker/build-push-action@v2.7.0
       with:
         file: support/build.Dockerfile
@@ -37,3 +43,21 @@ jobs:
         platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
         tags: pldubouilh/gossa:latest,pldubouilh/gossa:${{github.ref_name}}
 
+    - name: Build all artifacts
+      run: make build-all
+
+    - name: "Release gh release versioned"
+      uses: ncipollo/release-action@58ae73b360456532aafd58ee170c045abbeaee37
+      with:
+        allowUpdates: true
+        artifacts: "builds/*"
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: "Release gh release latest"
+      uses: ncipollo/release-action@58ae73b360456532aafd58ee170c045abbeaee37
+      with:
+        tag: latest
+        name: Latest
+        allowUpdates: true
+        artifacts: "builds/*"
+        token: ${{ secrets.GITHUB_TOKEN }}
