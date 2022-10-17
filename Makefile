@@ -64,11 +64,12 @@ build-all: build
 	${NOCGO}  GOOS=windows  GOARCH=amd64  go build ${FLAGS} -o builds/gossa-windows.exe
 	sha256sum builds/*
 
+.PHONY: clean
 clean:
-	-rm gossa
-	-rm gossa-linux64
-	-rm gossa-linux-arm
-	-rm gossa-linux-arm64
-	-rm gossa-mac
-	-rm gossa-windows.exe
+	rm -f gossa
+	rm -f gossa-linux64
+	rm -f gossa-linux-arm
+	rm -f gossa-linux-arm64
+	rm -f gossa-mac
+	rm -f gossa-windows.exe
 
