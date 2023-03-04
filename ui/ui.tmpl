@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="theme-color" content="rgb(45,52,54)">
+    <meta name="msapplication-navbutton-color" content="rgb(45,52,54)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width">
+
+    <link rel="manifest" href='data:application/manifest+json,{"name":"{{.Title}}","short_name":"{{.Title}}","description":"  ","icons":[{"src":"data:image/svg+xml;base64,favicon_will_be_here","sizes":"150x150","type":"image/svg+xml"}],"background":"rgb(45,52,54)","theme_color":"rgb(45,52,54)","display":"standalone"}' />
+
+    <title>{{.Title}}</title>
+    <link href="data:image/svg+xml;base64,favicon_will_be_here" rel="icon" type="image/svg+xml" />
+    <style type="text/css">css_will_be_here</style>
+    <script>
+        window.ro = {{.Ro}}
+        window.extraPath = {{.ExtraPath}}.slice(0, -1)
+        window.onload = function () { js_will_be_here }
+    </script>
+</head>
+
+<body>
+    <div onclick="window.helpOff()" style="display: none;" id="help"><table id="helpTable"><tbody>
+        <tr><td>Arrows/Enter</td><td>browse files/folders and pictures</td></tr>
+        <tr><td>Ctrl/Meta + Enter</td><td>download selected item as archive</td></tr>
+        <tr><td>Ctrl/Meta + C</td><td>copy URL to clipboard</td></tr>
+        <tr><td>Ctrl/Meta + E</td><td>rename item</td></tr>
+        <tr><td>Ctrl/Meta + Del</td><td>delete item</td></tr>
+        <tr><td>Ctrl/Meta + U</td><td>upload new file/folder</td></tr>
+        <tr><td>Ctrl/Meta + M</td><td>create a new directory</td></tr>
+        <tr><td>Ctrl/Meta + X</td><td>cut selected path</td></tr>
+        <tr><td>Ctrl/Meta + V</td><td>paste previously selected paths to directory</td></tr>
+        <tr><td>Ctrl + click</td><td>download selected item as archive</td></tr>
+        <tr><td>click file icon </td><td>rename item</td></tr>
+        <tr><td>double click file icon</td><td>delete item</td></tr>
+        <tr><td>drag-and-drop item on UI</td><td>move item</td></tr>
+        <tr><td>drag-and-drop external item</td><td>upload file/folders</td></tr>
+        <tr><td>any other letter</td><td>fuzzy search</td></tr>
+    </tbody></table></div>
+
+    <div style="display: none;" onclick="window.quitAll()" id="quitAll"><i style="display: none;" id="toast">cant reach server</i></div>
+    <textarea style="display: none;" id="text-editor"></textarea>
+    <div id="drop-grid"></div>
+    <input type="file" id="clickupload" style="display:none"/>
+
+    <h1 onclick="return titleClick(event)">.{{.Title}}</h1>
+
+    <div id="icHolder">
+        {{if not .Ro}}
+            <div style="display:none;" onclick="document.getElementById('clickupload').click()" class="ic icon-large-upload manualUp"></div>
+            <div onclick="window.displayPad()" class="ic icon-large-pad"></div>
+            <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>
+        {{end}}
+    </div>
+
+    <div id="pics" style="display:none;"> <img draggable="false" onclick="window.picsNav()" id="picsHolder" /></div>
+    <div id="video" style="display:none;"> <video controls id="videoHolder"></video></div>
+
+    <table id="linkTable">
+    {{range .RowsFolders}}
+        <tr>
+            <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
+            <td class="file-size"><code>{{.Size}}</code></td>
+            <td class="arrow"><div class="arrow-icon"></div></td>
+            <td class="display-name"><a class="list-links" oncontextmenu="return setCursorTo(event.target.innerText)" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
+        </tr>
+    {{end}}
+    {{range .RowsFiles}}
+        <tr>
+            <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
+            <td class="file-size"><code>{{.Size}}</code></td>
+            <td class="arrow"><div class="arrow-icon"></div></td>
+            <td class="display-name"><a class="list-links" oncontextmenu="return setCursorTo(event.target.innerText)" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
+        </tr>
+    {{end}}
+    </table>
+</body>
+<div id="upBar" class="bar">
+    <span style="display: none;" class="barName" id="upBarName"></span>
+    <div style="display: none; background-color: green;" class="barPc" id="upBarPc">1%</div>
+</div>
+<div id="ok" class="notif icon-large-ok"></div>
+<div id="sad" class="notif icon-large-sad-server"></div>
+</html>

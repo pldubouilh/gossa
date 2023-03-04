@@ -44,16 +44,16 @@ test:
 	# go tool cover -func=all.out | grep main | grep '9.\..\%'
 
 watch:
-	ls gossa.go gossa_test.go gossa-ui/* | entr -rc make build run
+	ls gossa.go gossa_test.go ui/* | entr -rc make build run
 
 watch-extra:
-	ls gossa.go gossa_test.go gossa-ui/* | entr -rc make build run-extra
+	ls gossa.go gossa_test.go ui/* | entr -rc make build run-extra
 
 watch-ro:
-	ls gossa.go gossa_test.go gossa-ui/* | entr -rc make build run-ro
+	ls gossa.go gossa_test.go ui/* | entr -rc make build run-ro
 
 watch-test:
-	ls gossa.go gossa_test.go gossa-ui/* | entr -rc make test
+	ls gossa.go gossa_test.go ui/* | entr -rc make test
 
 build-all: build
 	${NOCGO}  GOOS=linux    GOARCH=amd64  go build ${FLAGS} -o builds/gossa-linux-x64
