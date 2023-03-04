@@ -41,6 +41,8 @@ const prependPath = a => a.startsWith('/') ? a : decodeURI(location.pathname) + 
 const prevent = e => e.preventDefault()
 const flicker = w => w.classList.remove('runFade') || void w.offsetWidth || w.classList.add('runFade')
 
+const encodeURIHash = e => encodeURI(e).replaceAll("#", "%23")
+
 // Manual upload
 manualUpload.addEventListener('change', () => Array.from(manualUpload.files).forEach(f => isDupe(f.name) || postFile(f, '/' + f.name)), false)
 
@@ -56,7 +58,8 @@ async function browseTo (href, flickerDone, skipHistory) {
     // check if is current path - if so skip following
     if (pageTitle.innerText !== title) {
       if (!skipHistory) {
-        history.pushState({}, '', encodeURI(window.extraPath + title))
+        const escaped = encodeURIHash(window.extraPath + title)
+        history.pushState({}, '', escaped)
       }
       pageTitle.innerText = title
       pageH1.innerText = '.' + title
@@ -113,7 +116,7 @@ let softStatePushed
 function pushSoftState (d) {
   if (softStatePushed) { return }
   softStatePushed = true
-  history.pushState({}, '', encodeURI(d))
+  history.pushState({}, '', encodeURIHash(d))
 }
 
 const refresh = () => browseTo(location.href, true)
@@ -228,7 +231,7 @@ window.titleClick = function (e) {
   const p = Array.from(document.querySelector('h1').childNodes).map(k => k.innerText)
   const i = p.findIndex(s => s === e.target.innerText)
   const dst = p.slice(0, i + 1).join('').slice(1)
-  const target = location.origin + window.extraPath + encodeURI(dst)
+  const target = location.origin + window.extraPath + encodeURIHash(dst)
   browseTo(target, false)
 }
 
@@ -522,7 +525,7 @@ function setImage () {
   picsHolder.src = src
   const name = src.split('/').pop()
   setCursorTo(decodeURI(name))
-  history.replaceState({}, '', encodeURI(name))
+  history.replaceState({}, '', encodeURIHash(name))
 }
 
 function picsOn (href) {
