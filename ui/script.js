@@ -599,6 +599,10 @@ function videosOff () {
   return true
 }
 
+window.videodl = function() {
+  dl(getASelected())
+}
+
 // help
 const isHelpMode = () => help.style.display === 'block'
 

@@ -54,7 +54,10 @@
     </div>
 
     <div id="pics" style="display:none;"> <img draggable="false" onclick="window.picsNav()" id="picsHolder" /></div>
-    <div id="video" style="display:none;"> <video controls id="videoHolder"></video></div>
+    <div id="video" style="display:none;">
+        <div onclick="window.videodl()" class="icon-dl" id="video-dl"></div>
+        <video controls id="videoHolder"> </video>
+    </div>
 
     <table id="linkTable">
     {{range .RowsFolders}}
