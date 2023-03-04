@@ -25,7 +25,7 @@
         <tr><td>Ctrl/Meta + Enter</td><td>download selected item as archive</td></tr>
         <tr><td>Ctrl/Meta + C</td><td>copy URL to clipboard</td></tr>
         <tr><td>Ctrl/Meta + E</td><td>rename item</td></tr>
-        <tr><td>Ctrl/Meta + Del</td><td>delete item</td></tr>
+        <tr><td>Ctrl/Meta + Backspace</td><td>delete item</td></tr>
         <tr><td>Ctrl/Meta + U</td><td>upload new file/folder</td></tr>
         <tr><td>Ctrl/Meta + M</td><td>create a new directory</td></tr>
         <tr><td>Ctrl/Meta + X</td><td>cut selected path</td></tr>
@@ -48,8 +48,8 @@
     <div id="icHolder">
         {{if not .Ro}}
             <div style="display:none;" onclick="document.getElementById('clickupload').click()" class="ic icon-large-upload manualUp"></div>
-            <div onclick="window.displayPad()" class="ic icon-large-pad"></div>
-            <div class="ic icon-large-folder" onclick="window.mkdirBtn()"></div>
+            <div onclick="window.displayPad()" class="ic icon-large-pad" title="Create TXT file"></div>
+            <div class="ic icon-large-folder" onclick="window.mkdirBtn()" title="Create Folder"></div>
         {{end}}
     </div>
 
