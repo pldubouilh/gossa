@@ -99,6 +99,9 @@ window.onClickLink = e => {
   } else if (isVideo(a.href) && !isVideoMode()) {
     videoOn(a.href)
     return false
+  // let html be displayed naturally
+  } else if (a.innerText.endsWith(".html")) {
+    return true
   }
 
   // else just force download
