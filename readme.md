@@ -9,7 +9,7 @@ gossa
 
 a fast and simple webserver for your files, that's dependency-free and with under 250 lines of code, easy to review.
 
-a [simple UI](https://github.com/pldubouilh/gossa-ui) comes as default, featuring :
+a simple UI comes as default, featuring :
 
   * 🔍 files/directories browser & handler
   * 📩 drag-and-drop uploader

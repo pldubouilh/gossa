@@ -8,16 +8,16 @@ import (
 	"strings"
 )
 
-//go:embed gossa-ui/script.js
+//go:embed ui/script.js
 var scriptJs string
 
-//go:embed gossa-ui/style.css
+//go:embed ui/style.css
 var styleCss string
 
-//go:embed gossa-ui/favicon.svg
+//go:embed ui/favicon.svg
 var faviconSvg []byte
 
-//go:embed gossa-ui/ui.tmpl
+//go:embed ui/ui.tmpl
 var templateStr string
 
 // fill in template
