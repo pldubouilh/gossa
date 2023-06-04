@@ -39,9 +39,9 @@ const getArrowSelected = () => document.querySelector('.arrow-selected')
 const getASelected = () => !getArrowSelected() ? false : getArrowSelected().parentElement.parentElement.querySelectorAll('a')[0]
 const prependPath = a => a.startsWith('/') ? a : decodeURI(location.pathname) + a
 const prevent = e => e.preventDefault()
-const flicker = w => w.classList.remove('runFade') || void w.offsetWidth || w.classList.add('runFade')
+const flicker = w => w.classList.remove('runFade') || void w.offsetWidth || w.classList.add('runFade') // eslint-disable-line
 
-const encodeURIHash = e => encodeURI(e).replaceAll("#", "%23")
+const encodeURIHash = e => encodeURI(e).replaceAll('#', '%23')
 
 // Manual upload
 manualUpload.addEventListener('change', () => Array.from(manualUpload.files).forEach(f => isDupe(f.name) || postFile(f, '/' + f.name)), false)
@@ -103,7 +103,7 @@ window.onClickLink = e => {
     videoOn(a.href)
     return false
   // let html be displayed naturally
-  } else if (a.innerText.endsWith(".html")) {
+  } else if (a.innerText.endsWith('.html')) {
     return true
   }
 
@@ -286,7 +286,7 @@ document.ondrop = e => {
 
   cancelDefault(e)
   upGrid.style.display = 'none'
-  let t = getLink().firstChild
+  const t = getLink().firstChild
 
   // move to a folder
   if (draggingSrc && t) {
@@ -339,7 +339,7 @@ async function padOn (a) {
       fileEdited = a.innerHTML
       const f = await fetch(a.href, {
         credentials: 'include',
-        headers: new Headers({ 'pragma': 'no-cache', 'cache-control': 'no-cache' })
+        headers: new Headers({ pragma: 'no-cache', 'cache-control': 'no-cache' })
       })
       editor.value = await f.text()
     } catch (error) {
@@ -605,7 +605,7 @@ function videosOff () {
   return true
 }
 
-window.videodl = function() {
+window.videodl = function () {
   dl(getASelected())
 }
 
@@ -628,7 +628,7 @@ function helpOff () {
 }
 
 // Paste handler
-let cuts = []
+const cuts = []
 function onPaste () {
   if (!cuts.length) { return refresh() }
   const a = getASelected()
@@ -669,7 +669,7 @@ let typedPath = ''
 let typedToken = null
 
 function cpPath () {
-  var t = document.createElement('textarea')
+  const t = document.createElement('textarea')
   t.value = getASelected().href
   document.body.appendChild(t)
   t.select()
