@@ -12,6 +12,9 @@ jobs:
         go-version: 1.19.1
       id: go
 
+    - name: deps
+      run: npm i -g standard
+
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
       with:

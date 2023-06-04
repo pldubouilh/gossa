@@ -1,26 +1,29 @@
 FLAGS := -ldflags "-s -w" -trimpath
 NOCGO := CGO_ENABLED=0
 
-build:
+build::
 	go vet && go fmt
 	${NOCGO} go build ${FLAGS} -o gossa
 
-install:
+install::
 	sudo cp gossa /usr/local/bin
 
-run:
+run::
 	./gossa -verb=true test-fixture
 
-run-ro:
+run-ro::
 	./gossa -verb=true -ro=true test-fixture
 
-run-extra:
+run-extra::
 	./gossa -verb=true -prefix="/fancy-path/" -k=false -symlinks=true test-fixture
 
-ci: build-all test
+lint-js::
+	standard
+
+ci:: build-all test lint-js
 	echo "done"
 
-test:
+test::
 	-@cd test-fixture && ln -s ../support .; true
 	go test -cover -c -tags testrunmain
 
@@ -43,19 +46,19 @@ test:
 	# go tool cover -html all.out
 	# go tool cover -func=all.out | grep main | grep '9.\..\%'
 
-watch:
+watch::
 	ls gossa.go gossa_test.go ui/* | entr -rc make build run
 
-watch-extra:
+watch-extra::
 	ls gossa.go gossa_test.go ui/* | entr -rc make build run-extra
 
-watch-ro:
+watch-ro::
 	ls gossa.go gossa_test.go ui/* | entr -rc make build run-ro
 
-watch-test:
+watch-test::
 	ls gossa.go gossa_test.go ui/* | entr -rc make test
 
-build-all: build
+build-all:: build
 	${NOCGO}  GOOS=linux    GOARCH=amd64  go build ${FLAGS} -o builds/gossa-linux-x64
 	${NOCGO}  GOOS=linux    GOARCH=arm    go build ${FLAGS} -o builds/gossa-linux-arm
 	${NOCGO}  GOOS=linux    GOARCH=arm64  go build ${FLAGS} -o builds/gossa-linux-arm64
@@ -64,8 +67,7 @@ build-all: build
 	${NOCGO}  GOOS=windows  GOARCH=amd64  go build ${FLAGS} -o builds/gossa-windows.exe
 	sha256sum builds/*
 
-.PHONY: clean
-clean:
+clean::
 	rm -f gossa
 	rm -f gossa-linux64
 	rm -f gossa-linux-arm
