@@ -19,6 +19,7 @@ const picsHolder = document.getElementById('picsHolder')
 const video = document.getElementById('video')
 const videoHolder = document.getElementById('videoHolder')
 const manualUpload = document.getElementById('clickupload')
+const pdf = document.getElementById('pdf')
 const help = document.getElementById('help')
 const okBadge = document.getElementById('ok')
 const sadBadge = document.getElementById('sad')
@@ -105,6 +106,9 @@ window.onClickLink = e => {
   // let html be displayed naturally
   } else if (a.innerText.endsWith('.html')) {
     return true
+  } else if (isPdf(a.href)) {
+    openPDF(a.href)
+    return false
   }
 
   // else just force download
@@ -371,11 +375,12 @@ function resetView () {
   table.style.display = 'table'
   picsHolder.src = transparentPixel
   videoHolder.src = ''
-  editor.style.display = pics.style.display = video.style.display = crossIcon.style.display = 'none'
+  pdf.innerHTML = ''
+  editor.style.display = pics.style.display = video.style.display = pdf.style.display = crossIcon.style.display = 'none'
   scrollToArrow()
 }
 
-window.quitAll = () => helpOff() || picsOff() || videosOff() || padOff()
+window.quitAll = () => helpOff() || picsOff() || videosOff() || padOff() || pdfOff()
 
 // Mkdir icon
 window.mkdirBtn = function () {
@@ -607,6 +612,30 @@ function videosOff () {
 
 window.videodl = function () {
   dl(getASelected())
+}
+
+// PDF Viewer
+const pdfTypes = ['.pdf']
+const isPdf = src => src && pdfTypes.find(type => src.toLocaleLowerCase().includes(type))
+const isPdfMode = () => pdf.style.display === 'flex'
+function openPDF (src) {
+  const name = src.split('/').pop()
+  table.style.display = 'none'
+  crossIcon.style.display = 'block'
+  pdf.style.display = 'flex'
+  const pdfEmbed = document.createElement('embed')
+  pdfEmbed.setAttribute('src', src + '#toolbar=0')
+  pdfEmbed.setAttribute('type', 'application/pdf')
+  pdf.appendChild(pdfEmbed)
+  pushSoftState(decodeURI(name))
+  return false
+}
+
+function pdfOff () {
+  if (!isPdfMode()) { return }
+  resetView()
+  softPrev()
+  return true
 }
 
 // help
