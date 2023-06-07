@@ -46,6 +46,7 @@ release images are pushed to [dockerhub](https://hub.docker.com/r/pldubouilh/gos
 
 ```sh
 # pull from dockerhub and run
+% mkdir ~/LocalDirToShare
 % sudo docker run -v ~/LocalDirToShare:/shared -p 8001:8001 pldubouilh/gossa
 ```
 
