@@ -259,10 +259,10 @@ func enforcePath(p string) string {
 }
 
 func main() {
-	if flag.Parse(); len(flag.Args()) > 0 {
+	if flag.Parse(); len(flag.Args()) == 1 {
 		rootPath = flag.Args()[0]
 	} else {
-		fmt.Printf("\nusage: ./gossa ~/directory-to-share\n\n")
+		fmt.Printf("\nusage: ./gossa [OPTIONS] ~/directory-to-share\n\n")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
@@ -280,7 +280,9 @@ func main() {
 	http.HandleFunc("/", doContent)
 	handler = http.StripPrefix(*extraPath, http.FileServer(http.Dir(rootPath)))
 
-	fmt.Printf("Gossa starting on directory %s\nListening on http://%s:%s%s\n", rootPath, *host, *port, *extraPath)
+	fmt.Printf("Gossa starting on directory %s\n", rootPath)
+	fmt.Printf("Verbose: %t, Symlinks: %t, Read-Only: %t, Hidden-Files Skipped: %t\n", *verb, *symlinks, *ro, *skipHidden)
+	fmt.Printf("Listening on http://%s:%s%s\n", *host, *port, *extraPath)
 	if err = server.ListenAndServe(); err != http.ErrServerClosed {
 		check(err)
 	}
