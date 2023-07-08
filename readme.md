@@ -22,13 +22,14 @@ a simple UI comes as default, featuring :
   * 🥂 fast golang static server
   * 💑 easy multi account setup, read-only mode
   * ✨ PWA-able
+  * 🖥️ multi-platform support
 
 ### install / build
 [arch linux (AUR)](https://aur.archlinux.org/packages/gossa/) - e.g. `yay -S gossa`
 
 [nix](https://search.nixos.org/packages?channel=unstable&show=gossa&from=0&size=50&sort=relevance&type=packages&query=gossa) - e.g. `nix-shell -p gossa`
 
-built blobs are available on the [release page](https://github.com/pldubouilh/gossa/releases) - or simply `make build` this repo.
+binaries are available on the [release page](https://github.com/pldubouilh/gossa/releases) - or simply `make build` this repo.
 
 all builds are reproducible, checkout the hashes on the release page.
 
