@@ -388,12 +388,12 @@ h1 > span:hover {
   z-index: 101;
 }
 
-.help_message {
+#help_message {
   font-family: monospace;
-  font-size: 10px;
-  float: left;
-  position: absolute;
+  font-size: 12px;
+  position: fixed;
   bottom: 3px;
+  right: 12px;
   opacity: 50%;
 }
 

@@ -34,6 +34,7 @@ type pageTemplate struct {
 	Title       template.HTML
 	ExtraPath   template.HTML
 	Ro          bool
+	HelpMessage bool
 	RowsFiles   []rowTemplate
 	RowsFolders []rowTemplate
 }
@@ -45,6 +46,7 @@ var symlinks = flag.Bool("symlinks", false, "follow symlinks \033[4mWARNING\033[
 var verb = flag.Bool("verb", false, "verbosity")
 var skipHidden = flag.Bool("k", true, "\nskip hidden files")
 var ro = flag.Bool("ro", false, "read only mode (no upload, rename, move, etc...)")
+var helpMessage = flag.Bool("m", true, "display small text showing how to open help menu")
 
 type rpcCall struct {
 	Call string   `json:"call"`
@@ -98,6 +100,7 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 	}
 	p.ExtraPath = template.HTML(html.EscapeString(*extraPath))
 	p.Ro = *ro
+	p.HelpMessage = *helpMessage
 	p.Title = template.HTML(html.EscapeString(title))
 
 	for _, el := range _files {
@@ -281,7 +284,7 @@ func main() {
 	handler = http.StripPrefix(*extraPath, http.FileServer(http.Dir(rootPath)))
 
 	fmt.Printf("Gossa starting on directory %s\n", rootPath)
-	fmt.Printf("Verbose: %t, Symlinks: %t, Read-Only: %t, Hidden-Files Skipped: %t\n", *verb, *symlinks, *ro, *skipHidden)
+	fmt.Printf("Verbose: %t, Symlinks: %t, Read-Only: %t, Hidden-Files Skipped: %t, Display Help Message: %t\n", *verb, *symlinks, *ro, *skipHidden, *helpMessage)
 	fmt.Printf("Listening on http://%s:%s%s\n", *host, *port, *extraPath)
 	if err = server.ListenAndServe(); err != http.ErrServerClosed {
 		check(err)

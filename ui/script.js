@@ -44,6 +44,9 @@ const flicker = w => w.classList.remove('runFade') || void w.offsetWidth || w.cl
 
 const encodeURIHash = e => encodeURI(e).replaceAll('#', '%23')
 
+// Display help message
+if (!window.helpMessage) document.getElementById("help_message").remove()
+
 // Manual upload
 manualUpload.addEventListener('change', () => Array.from(manualUpload.files).forEach(f => isDupe(f.name) || postFile(f, '/' + f.name)), false)
 
