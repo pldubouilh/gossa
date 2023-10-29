@@ -24,10 +24,11 @@ import (
 )
 
 type rowTemplate struct {
-	Name string
-	Href template.HTML
-	Size string
-	Ext  string
+	Name  string
+	Href  template.HTML
+	Size  string
+	Ext   string
+	Image bool
 }
 
 type pageTemplate struct {
@@ -94,7 +95,7 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 	title := "/" + strings.TrimPrefix(path, *extraPath)
 	p := pageTemplate{}
 	if path != *extraPath {
-		p.RowsFolders = append(p.RowsFolders, rowTemplate{"../", "../", "", "folder"})
+		p.RowsFolders = append(p.RowsFolders, rowTemplate{"../", "../", "", "folder", false})
 	}
 	p.ExtraPath = template.HTML(html.EscapeString(*extraPath))
 	p.Ro = *ro
@@ -116,17 +117,19 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 
 		href := url.PathEscape(el.Name())
 		name := el.Name()
+		lowerName := strings.ToLower(el.Name())
+		image := strings.HasSuffix(lowerName, ".png") || strings.HasSuffix(lowerName, ".jpeg") || strings.HasSuffix(lowerName, ".jpg")
 
 		if el.IsDir() && strings.HasPrefix(href, "/") {
 			href = strings.Replace(href, "/", "", 1)
 		}
 
 		if el.IsDir() {
-			p.RowsFolders = append(p.RowsFolders, rowTemplate{name + "/", template.HTML(href), "", "folder"})
+			p.RowsFolders = append(p.RowsFolders, rowTemplate{name + "/", template.HTML(href), "", "folder", false})
 		} else {
 			sl := strings.Split(name, ".")
 			ext := strings.ToLower(sl[len(sl)-1])
-			p.RowsFiles = append(p.RowsFiles, rowTemplate{name, template.HTML(href), humanize(el.Size()), ext})
+			p.RowsFiles = append(p.RowsFiles, rowTemplate{name, template.HTML(href), humanize(el.Size()), ext, image})
 		}
 	}
 

@@ -75,6 +75,9 @@
             <td class="file-size"><code>{{.Size}}</code></td>
             <td class="arrow"><div class="arrow-icon"></div></td>
             <td class="display-name"><a class="list-links" oncontextmenu="return setCursorTo(event.target.innerText)" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
+            {{if .Image}}
+                <td><img src="{{.Href}}" style="max-width: 20em;"/></td>
+            {{end}}
         </tr>
     {{end}}
     </table>
