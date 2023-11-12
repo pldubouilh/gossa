@@ -43,49 +43,64 @@
     <div id="drop-grid"></div>
     <input type="file" id="clickupload" style="display:none"/>
 
-    <h1 onclick="return titleClick(event)">.{{.Title}}</h1>
+    <header>
+        <div class="title">
+            <h1>Gossa</h1>
+        </div>
+    </header>
 
-    <div id="icHolder">
-        {{if not .Ro}}
-            <div style="display:none;" onclick="document.getElementById('clickupload').click()" class="ic icon-large-upload manualUp"></div>
-            <div onclick="window.displayPad()" class="ic icon-large-pad" title="Create TXT file"></div>
-            <div class="ic icon-large-folder" onclick="window.mkdirBtn()" title="Create Folder"></div>
+    <main>
+        <div id="icHolder">
+            <h1 onclick="return titleClick(event)">.{{.Title}}</h1>
+            <div>
+                {{if not .Ro}}
+                    <div style="display:none;" onclick="document.getElementById('clickupload').click()" class="ic icon-large-upload manualUp"></div>
+                    <div onclick="window.displayPad()" class="ic icon-large-pad" title="Create TXT file"></div>
+                    <div class="ic icon-large-folder" onclick="window.mkdirBtn()" title="Create Folder"></div>
+                {{end}}
+            </div>
+        </div>
+
+        <div id="pics" style="display:none;"> <img draggable="false" onclick="window.picsNav()" id="picsHolder" /></div>
+        <div id="video" style="display:none;">
+            <div onclick="window.videodl()" class="icon-dl" id="video-dl"></div>
+            <video controls id="videoHolder"> </video>
+        </div>
+        <div id="pdf" style="display:none;"> </div>
+
+        <table id="linkTable">
+        {{range .RowsFolders}}
+            <tr>
+                <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank" title="Click to rename"></i></td>
+                <td class="arrow"><div class="arrow-icon"></div></td>
+                <td class="display-name"><a class="list-links" oncontextmenu="return setCursorTo(event.target.innerText)" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
+                <td class="file-size"><code>{{.Size}}</code></td>
+            </tr>
         {{end}}
-    </div>
+        {{range .RowsFiles}}
+            <tr>
+                <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank" title="Click to rename"></i></td>
+                <td class="arrow"><div class="arrow-icon"></div></td>
+                <td class="display-name"><a class="list-links" oncontextmenu="return setCursorTo(event.target.innerText)" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
+                <td class="file-size"><code>{{.Size}}</code></td>
+                <td class="image-preview">
+                    {{if .Image}}
+                        <img src="{{.Href}}" style="width: -webkit-fill-available;"/>
+                    {{end}}
+                </td>
+            </tr>
+        {{end}}
+        </table>
+    </body>
+        <div id="upBar" class="bar">
+            <span style="display: none;" class="barName" id="upBarName"></span>
+            <div style="display: none; background-color: green;" class="barPc" id="upBarPc">1%</div>
+        </div>
+        <div id="ok" class="notif icon-large-ok"></div>
+        <div id="sad" class="notif icon-large-sad-server"></div>
+    </main>
 
-    <div id="pics" style="display:none;"> <img draggable="false" onclick="window.picsNav()" id="picsHolder" /></div>
-    <div id="video" style="display:none;">
-        <div onclick="window.videodl()" class="icon-dl" id="video-dl"></div>
-        <video controls id="videoHolder"> </video>
-    </div>
-    <div id="pdf" style="display:none;"> </div>
-
-    <table id="linkTable">
-    {{range .RowsFolders}}
-        <tr>
-            <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
-            <td class="file-size"><code>{{.Size}}</code></td>
-            <td class="arrow"><div class="arrow-icon"></div></td>
-            <td class="display-name"><a class="list-links" oncontextmenu="return setCursorTo(event.target.innerText)" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
-        </tr>
-    {{end}}
-    {{range .RowsFiles}}
-        <tr>
-            <td class="iconRow"><i ondblclick="return rm(event)" onclick="return rename(event)" class="btn icon icon-{{.Ext}} icon-blank"></i></td>
-            <td class="file-size"><code>{{.Size}}</code></td>
-            <td class="arrow"><div class="arrow-icon"></div></td>
-            <td class="display-name"><a class="list-links" oncontextmenu="return setCursorTo(event.target.innerText)" onclick="return onClickLink(event)" href="{{.Href}}">{{.Name}}</a></td>
-            {{if .Image}}
-                <td><img src="{{.Href}}" style="max-width: 20em;"/></td>
-            {{end}}
-        </tr>
-    {{end}}
-    </table>
-</body>
-<div id="upBar" class="bar">
-    <span style="display: none;" class="barName" id="upBarName"></span>
-    <div style="display: none; background-color: green;" class="barPc" id="upBarPc">1%</div>
-</div>
-<div id="ok" class="notif icon-large-ok"></div>
-<div id="sad" class="notif icon-large-sad-server"></div>
+    <footer>
+        Contribute to <a href="https://github.com/awtrimpe/gossa">Gossa fork</a>
+    </footer>
 </html>
