@@ -25,7 +25,7 @@ import (
 
 type rowTemplate struct {
 	Name string
-	Href template.HTML
+	Href template.URL
 	Size string
 	Ext  string
 }
@@ -122,11 +122,13 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 		}
 
 		if el.IsDir() {
-			p.RowsFolders = append(p.RowsFolders, rowTemplate{name + "/", template.HTML(href), "", "folder"})
+			row := rowTemplate{name + "/", template.URL(href), "", "folder"}
+			p.RowsFolders = append(p.RowsFolders, row)
 		} else {
 			sl := strings.Split(name, ".")
 			ext := strings.ToLower(sl[len(sl)-1])
-			p.RowsFiles = append(p.RowsFiles, rowTemplate{name, template.HTML(href), humanize(el.Size()), ext})
+			row := rowTemplate{name, template.URL(href), humanize(el.Size()), ext}
+			p.RowsFiles = append(p.RowsFiles, row)
 		}
 	}
 
