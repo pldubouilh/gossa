@@ -12,7 +12,6 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -83,9 +82,9 @@ func humanize(bytes int64) string {
 }
 
 func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path string) {
-	_files, err := ioutil.ReadDir(fullPath)
+	files, err := os.ReadDir(fullPath)
 	check(err)
-	sort.Slice(_files, func(i, j int) bool { return strings.ToLower(_files[i].Name()) < strings.ToLower(_files[j].Name()) })
+	sort.Slice(files, func(i, j int) bool { return strings.ToLower(files[i].Name()) < strings.ToLower(files[j].Name()) })
 
 	if !strings.HasSuffix(path, "/") {
 		path += "/"
@@ -100,18 +99,18 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 	p.Ro = *ro
 	p.Title = template.HTML(html.EscapeString(title))
 
-	for _, el := range _files {
-		if *skipHidden && strings.HasPrefix(el.Name(), ".") {
-			continue // dont print hidden files if we're not allowed
-		}
-		if !*symlinks && el.Mode()&os.ModeSymlink != 0 {
-			continue // dont print symlinks if were not allowed
-		}
-
-		el, err := os.Stat(fullPath + "/" + el.Name())
+	for _, el := range files {
+		info, err := el.Info()
 		if err != nil {
 			log.Println("error - cant stat a file", err)
 			continue
+		}
+
+		if *skipHidden && strings.HasPrefix(el.Name(), ".") {
+			continue // dont print hidden files if we're not allowed
+		}
+		if *symlinks && info.Mode()&os.ModeSymlink != 0 {
+			continue // dont follow symlinks if we're not allowed
 		}
 
 		href := url.PathEscape(el.Name())
@@ -127,7 +126,7 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 		} else {
 			sl := strings.Split(name, ".")
 			ext := strings.ToLower(sl[len(sl)-1])
-			row := rowTemplate{name, template.URL(href), humanize(el.Size()), ext}
+			row := rowTemplate{name, template.URL(href), humanize(info.Size()), ext}
 			p.RowsFiles = append(p.RowsFiles, row)
 		}
 	}
@@ -228,7 +227,7 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var rpc rpcCall
 	defer exitPath(w, "rpc", rpc)
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
 	check(err)
 	json.Unmarshal(bodyBytes, &rpc)
 
