@@ -44,14 +44,14 @@ authentication / user routing has been left out of the design of gossa, as simpl
 
 ### example 1 root, multiple read-only users
 
-this sample caddy config will
+This sample Caddyfile will
  + enable https on the domain myserver.com (http will be automatically redirected to https)
  + password protect the access
  + route the root user requests to 1 gossa instance
  + route user1 and user2 requests to a readonly gossa instance
 
 <details>
-  <summary>legacy caddy v1 config snippet</summary>
+  <summary>Legacy Caddy v1 Caddyfile</summary>
   
   ```sh
   myserver.com
@@ -116,7 +116,7 @@ then simply start the 2 gossa instances, and caddy
 
 ### example 2 users on 2 different folders
 
-this sample caddy v2 config will
+This sample Caddyfile will
  + enable https on the domain myserver.com (http will be automatically redirected to https)
  + password protect the access
  + route user1 to own folder
