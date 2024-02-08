@@ -40,34 +40,65 @@ a docker-compose example image is also provided. running docker compose should b
 
 ## multi-account setup
 
-authentication / user routing has been left out of the design of gossa, as simple tools are already available for this purpose. [caddy](https://caddyserver.com/v1/) is used here as an example, but other proxy can be used in a similar fashion.
+authentication / user routing has been left out of the design of gossa, as simple tools are already available for this purpose. [caddy](https://caddyserver.com) is used here as an example, but other proxy can be used in a similar fashion.
 
 ### example 1 root, multiple read-only users
 
 this sample caddy config will
- + enable https on the domain myserver.com
+ + enable https on the domain myserver.com (http will be automatically redirected to https)
  + password protect the access
  + route the root user requests to 1 gossa instance
  + route user1 and user2 requests to a readonly gossa instance
 
+<details>
+  <summary>legacy caddy v1 config snippet</summary>
+  
+  ```sh
+  myserver.com
+  
+  # proxy regular and read only instance
+  proxy /   127.0.0.1:8001
+  proxy /ro 127.0.0.1:8002 { without /ro }
+  
+  # reroute non-root user to read-only
+  # cm9... is the output of `printf "root:password" | base64`
+  rewrite {
+    if {>Authorization} not "Basic cm9vdDpwYXNzd29yZA=="
+    to /ro/{path}
+  }
+  
+  # gate access
+  basicauth / root     password
+  basicauth / ro_user1 passworduser1
+  basicauth / ro_user2 passworduser2
+  ```
+</details>
+
+Caddy v2 Caddyfile
+
 ```sh
 myserver.com
 
-# proxy regular and read only instance
-proxy /   127.0.0.1:8001
-proxy /ro 127.0.0.1:8002 { without /ro }
-
-# reroute non-root user to read-only
-# cm9... is the output of `printf "root:password" | base64`
-rewrite {
-  if {>Authorization} not "Basic cm9vdDpwYXNzd29yZA=="
-  to /ro/{path}
+# gate access
+basicauth {
+  root $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG # password is "hiccup"
+  ro_user1 $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG # password is "hiccup"
+  ro_user2 $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG # password is "hiccup"
 }
 
-# gate access
-basicauth / root     password
-basicauth / ro_user1 passworduser1
-basicauth / ro_user2 passworduser2
+# named matcher for root user
+@isroot {
+  vars {http.auth.user.id} root
+}
+
+# proxy regular and read only instance
+handle @isroot {
+  reverse_proxy 127.0.0.1:8001
+}
+# route non-root user to read only instance
+handle {
+  reverse_proxy 127.0.0.1:8002
+}
 ```
 
 then simply start the 2 gossa instances, and caddy
@@ -85,30 +116,59 @@ then simply start the 2 gossa instances, and caddy
 
 ### example 2 users on 2 different folders
 
-this sample caddy config will
- + enable https on the domain myserver.com
+this sample caddy v2 config will
+ + enable https on the domain myserver.com (http will be automatically redirected to https)
  + password protect the access
  + route user1 to own folder
  + route user2 to own folder
  + share a folder between 2 users with a symlink
 
+<details>
+  <summary>Legacy Caddy v1 Caddyfile</summary>
+
+  ```sh
+  myserver.com
+  
+  proxy /user1 127.0.0.1:8001 { without /user1 }
+  proxy /user2 127.0.0.1:8002 { without /user2 }
+  
+  basicauth / user1 passworduser1
+  basicauth / user2 passworduser2
+  
+  rewrite {
+    if {>Authorization} is "Basic dXNlcjE6cGFzc3dvcmR1c2VyMQ=="
+    to /user1/{path}
+  }
+  
+  rewrite {
+    if {>Authorization} is "Basic dXNlcjI6cGFzc3dvcmR1c2VyMg=="
+    to /user2/{path}
+  }
+  ```
+</details>
+
+Caddy v2 Caddyfile
+
 ```sh
 myserver.com
 
-proxy /user1 127.0.0.1:8001 { without /user1 }
-proxy /user2 127.0.0.1:8002 { without /user2 }
-
-basicauth / user1 passworduser1
-basicauth / user2 passworduser2
-
-rewrite {
-  if {>Authorization} is "Basic dXNlcjE6cGFzc3dvcmR1c2VyMQ=="
-  to /user1/{path}
+basicauth {
+  user1 $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG # password is "hiccup"
+  user2 $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG # password is "hiccup"
 }
 
-rewrite {
-  if {>Authorization} is "Basic dXNlcjI6cGFzc3dvcmR1c2VyMg=="
-  to /user2/{path}
+@user1auth {
+  vars {http.auth.user.id} user1 
+}
+handle @user1auth {
+  reverse_proxy 127.0.0.1:8001
+}
+
+@user2auth {
+  vars {http.auth.user.id} user2
+}
+handle @user2auth {
+  reverse_proxy 127.0.0.1:8002
 }
 ```
 
