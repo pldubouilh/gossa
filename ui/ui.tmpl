@@ -15,6 +15,7 @@
     <script>
         window.ro = {{.Ro}}
         window.extraPath = {{.ExtraPath}}.slice(0, -1)
+	window.helpMessage = {{.HelpMessage}}
         window.onload = function () { js_will_be_here }
     </script>
 </head>
@@ -78,6 +79,7 @@
         </tr>
     {{end}}
     </table>
+    <p id="help_message">Help: Ctrl/Cmd + h<p>
 </body>
 <div id="upBar" class="bar">
     <span style="display: none;" class="barName" id="upBarName"></span>
