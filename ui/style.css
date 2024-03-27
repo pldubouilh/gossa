@@ -24,6 +24,9 @@
   .file-size {
     display: none !important;
   }
+  #help_message {
+    display: none !important;
+  }
 }
 
 /* hello standards 👋🏻 */
@@ -388,6 +391,18 @@ h1 > span:hover {
   z-index: 101;
 }
 
+#help_message {
+  font-family: monospace;
+  font-size: 14px;
+  position: fixed;
+  bottom: 5px;
+  right: 13px;
+  opacity: 50%;
+  user-select: none;
+  display: none;
+  margin: unset;
+}
+
 .icon-large-folder {
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAJFBMVEUAAACZmQAICAj4+Pj//5nMzGb/+/AAAAD/zJkzMwAAAP////+gebovAAAAAXRSTlMAQObYZgAAAAFiS0dECx/XxMAAAAAHdElNRQfiBhgXAy5jJ3EAAAAA1klEQVQoz42RMQ7CMBAEQ0mZIIp0/AGecJFO7kC2FKXmATxikaxUtPS48Ss5XxwnoWI7j3f3fHJV/aFa1KzOuwsRdacFHCjpthjuChbL0U261ipJnDd65IokJhCaGTCzEOZ25SAwaAUgASoOyFFzxWEsEkQGz2BskFJfHMMwWB07AVAXg/QwZscYPzHqXAVicDE4eJ47QOOoHexzhINxQRxIEVkC6I217OGLg9DLIn7qkHHEWiAvEwAdJyQlNKK3gKfcITuxZjzrO+qt2mr/3uj1z1//6AsSG3mwAQQN9wAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxOC0wNi0yNFQyMzowMzo0Ni0wNDowMFfZ8nYAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTgtMDYtMjRUMjM6MDM6NDYtMDQ6MDAmhErKAAAAAElFTkSuQmCC");
 }
@@ -466,4 +481,3 @@ h1 > span:hover {
 .icon-dl {
   background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IS0tIFVwbG9hZGVkIHRvOiBTVkcgUmVwbywgd3d3LnN2Z3JlcG8uY29tLCBHZW5lcmF0b3I6IFNWRyBSZXBvIE1peGVyIFRvb2xzIC0tPg0KPHN2ZyB3aWR0aD0iODAwcHgiIGhlaWdodD0iODAwcHgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCjxwYXRoIGQ9Ik0yMCAxNVYxOEMyMCAxOS4xMDQ2IDE5LjEwNDYgMjAgMTggMjBINkM0Ljg5NTQzIDIwIDQgMTkuMTA0NiA0IDE4TDQgMTVNOCAxMUwxMiAxNU0xMiAxNUwxNiAxMU0xMiAxNVYzIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4NCjwvc3ZnPg==");
 }
-

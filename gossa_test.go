@@ -205,6 +205,17 @@ func doTestRegular(t *testing.T, url string, testExtra bool) {
 	}
 
 	// ~~~~~~~~~~~~~~~~~
+	fmt.Println("\r\n~~~~~~~~~~ test post file")
+	path = "2024-01-02-10:36:58.png"
+	payload = "123123123123123123123123"
+	body0 = postDummyFile(t, url, path, payload)
+	body1 = get(t, url+path)
+	body2 = fetchAndTestDefault(t, url)
+	if body0 != `ok` || body1 != payload || !strings.Contains(body2, `href="2024-01-02-10:36:58.png"`) {
+		t.Fatal("post file errored")
+	}
+
+	// ~~~~~~~~~~~~~~~~~
 	fmt.Println("\r\n~~~~~~~~~~ test mv rpc")
 	body0 = postJSON(t, url+"rpc", `{"call":"mv","args":["/AAA", "/hols/AAA"]}`)
 	body1 = fetchAndTestDefault(t, url)

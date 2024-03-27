@@ -11,6 +11,7 @@ const rmMsg = () => !confirm('Remove file?\n')
 const ensureMove = () => !confirm('move items?')
 const isRo = () => window.ro
 
+// DOM elements
 const upBarName = document.getElementById('upBarName')
 const upBarPc = document.getElementById('upBarPc')
 const upGrid = document.getElementById('drop-grid')
@@ -29,6 +30,8 @@ const editor = document.getElementById('text-editor')
 const crossIcon = document.getElementById('quitAll')
 const toast = document.getElementById('toast')
 const table = document.getElementById('linkTable')
+const helpMsg = document.getElementById('help_message')
+
 const transparentPixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 
 // helpers
@@ -846,6 +849,13 @@ function init () {
     const cleanURL = location.href.replace('?editor=', '')
     const matchingA = allA.find(a => a.href === cleanURL)
     padOn(matchingA)
+  }
+
+  // check if we're at root path
+  if (location.pathname === window.extraPath + '/') {
+    helpMsg.style.display = 'block'
+  } else {
+    helpMsg.style.display = 'none'
   }
 }
 init()
