@@ -2,9 +2,28 @@ version: '2'
 
 services:
   gossa-server:
-    image: pldubouilh/gossa
+    image: docker.io/pldubouilh/gossa:latest
     container_name: gossa
     restart: always
+    read_only: true
+    # uncomment to set the user
+    # user: "1000:1000"
+    # environment:
+      #- READONLY=true # uncomment to set gossa as read only
+      #- UID=1000 # this should match the user set above
+      #- GID=1000 # this should match the user's group
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+    # uncomment to set resource usage limits
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: "2"
+    #       memory: 250m
+    #       pids: 1024
     ports:
       - 8001:8001
     volumes:
