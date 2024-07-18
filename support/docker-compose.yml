@@ -8,10 +8,11 @@ services:
     read_only: true
     # uncomment to set the user
     # user: "1000:1000"
+    # userns_mode: "keep-id" # uncomment if using rootless podman as well as the x-podman directive at the bottom
     # environment:
       #- READONLY=true # uncomment to set gossa as read only
-      #- UID=1000 # this should match the user set above
-      #- GID=1000 # this should match the user's group
+      # - UID=1000 # this should match the user set above
+      # - GID=1000 # this should match the user's group
     cap_drop:
       - ALL
     cap_add:
@@ -33,3 +34,6 @@ services:
 #      - "traefik.port=8001"
 #      - "traefik.backend=gossa"
 #      - "traefik.frontend.rule=Host:${GOSSA}.${DOMAIN}"
+
+# x-podman: # uncomment if using rootless podman as well as the userns_mode directive at the top
+#  in_pod: false
