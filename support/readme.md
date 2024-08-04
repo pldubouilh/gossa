@@ -38,7 +38,7 @@ if you prefer building the image yourself :
 
 a docker-compose example image is also provided. running docker compose should be straightforward : `docker-compose up .` have a look in `docker-compose.yml` for further configuration.
 
-## multi-account setup
+## multi-account setup with Caddy
 
 authentication / user routing has been left out of the design of gossa, as simple tools are already available for this purpose. [caddy](https://caddyserver.com) is used here as an example, but other proxy can be used in a similar fashion.
 
@@ -183,4 +183,13 @@ start 2 gossa instances, and caddy
 % ./gossa -p 8001 -symlinks=true test/user1 &
 % ./gossa -p 8002 -symlinks=true test/user2 &
 % ./caddy
+```
+
+## nginx setup
+
+In order to allow for larger uploads, it's recommended to increase the maximum body size on your nginx config :
+
+```
+# increase maximum request size
+client_max_body_size 100M;
 ```
