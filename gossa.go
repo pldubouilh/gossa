@@ -137,9 +137,9 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed) // BestSpeed is Much Faster than default - base on a very unscientific local test, and only ~30% larger (compression remains still very effective, ~6x)
 		check(err)
 		defer gz.Close()
-		templateParsed.Execute(gz, p)
+		tmpl.Execute(gz, p)
 	} else {
-		templateParsed.Execute(w, p)
+		tmpl.Execute(w, p)
 	}
 }
 

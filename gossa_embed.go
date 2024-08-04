@@ -17,10 +17,18 @@ var styleCss string
 var faviconSvg []byte
 
 //go:embed ui/ui.tmpl
-var template0 string
+var uiTmpl string
+
+var tmpl *template.Template
 
 // fill in template
-var template1 = strings.Replace(template0, "css_will_be_here", styleCss, 1)
-var template2 = strings.Replace(template1, "js_will_be_here", scriptJs, 1)
-var template3 = strings.Replace(template2, "favicon_will_be_here", base64.StdEncoding.EncodeToString(faviconSvg), 2)
-var templateParsed, _ = template.New("").Parse(template3)
+func init() {
+	var err error
+	t := strings.Replace(uiTmpl, "css_will_be_here", styleCss, 1)
+	t = strings.Replace(t, "js_will_be_here", scriptJs, 1)
+	t = strings.Replace(t, "favicon_will_be_here", base64.StdEncoding.EncodeToString(faviconSvg), 2)
+	tmpl, err = template.New("").Parse(t)
+	if err != nil {
+		panic(err)
+	}
+}
