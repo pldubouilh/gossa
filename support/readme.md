@@ -80,7 +80,7 @@ Caddy v2 Caddyfile
 myserver.com
 
 # gate access
-basicauth {
+basic_auth {
   root $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG # password is "hiccup"
   ro_user1 $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG # password is "hiccup"
   ro_user2 $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG # password is "hiccup"
@@ -152,7 +152,7 @@ Caddy v2 Caddyfile
 ```sh
 myserver.com
 
-basicauth {
+basic_auth {
   user1 $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG # password is "hiccup"
   user2 $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG # password is "hiccup"
 }
