@@ -17,10 +17,7 @@ run-ro::
 run-extra::
 	./gossa -verb=true -prefix="/fancy-path/" -k=false -symlinks=true test-fixture
 
-lint-js::
-	standard
-
-ci:: build-all test lint-js
+ci:: build-all test
 	echo "done"
 
 test::
@@ -66,7 +63,7 @@ build-all:: build
 	${NOCGO} GOOS=darwin  GOARCH=amd64 go build ${FLAGS} -o builds/gossa-mac-x64
 	${NOCGO} GOOS=darwin  GOARCH=arm64 go build ${FLAGS} -o builds/gossa-mac-arm64
 	${NOCGO} GOOS=windows GOARCH=amd64 go build ${FLAGS} -o builds/gossa-windows.exe
-	sha256sum builds/*
+	sha256sum builds/* | tee builds/buildout
 
 clean::
 	rm -f gossa
