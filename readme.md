@@ -29,7 +29,9 @@ a simple UI comes as default, featuring :
 
 [nix](https://search.nixos.org/packages?channel=unstable&show=gossa&from=0&size=50&sort=relevance&type=packages&query=gossa) - e.g. `nix-shell -p gossa`
 
-binaries are available on the [release page](https://github.com/pldubouilh/gossa/releases) - or simply `make build` this repo.
+[mpr](https://mpr.makedeb.org/packages/gossa)
+
+binaries are available on the [release page](https://github.com/pldubouilh/gossa/releases)
 
 all builds are reproducible, checkout the hashes on the release page.
 
