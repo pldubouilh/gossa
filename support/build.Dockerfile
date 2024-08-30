@@ -1,10 +1,10 @@
-FROM golang:1.23.0-alpine AS builder
+FROM docker.io/library/golang:1.23.0-alpine AS builder
 RUN apk add --no-cache make
 WORKDIR /gossaSrc
 COPY . /gossaSrc
 RUN make
 
-FROM alpine:3.20
+FROM docker.io/library/alpine:3.20
 ENV UID="1000" GID="1000" HOST="0.0.0.0" PORT="8001" PREFIX="/" FOLLOW_SYMLINKS="false" SKIP_HIDDEN_FILES="true" DATADIR="/shared" READONLY="false" VERB="false"
 COPY --from=builder /gossaSrc/gossa /gossa
 RUN addgroup -g ${GID} user \
