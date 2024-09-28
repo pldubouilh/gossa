@@ -45,11 +45,6 @@ var verb = flag.Bool("verb", false, "verbosity")
 var skipHidden = flag.Bool("k", true, "\nskip hidden files")
 var ro = flag.Bool("ro", false, "read only mode (no upload, rename, move, etc...)")
 
-type rpcCall struct {
-	Call string   `json:"call"`
-	Args []string `json:"args"`
-}
-
 var rootPath = ""
 var handler http.Handler
 
@@ -134,7 +129,7 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 		w.Header().Set("Content-Type", "text/html")
 		w.Header().Add("Content-Encoding", "gzip")
-		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed) // BestSpeed is Much Faster than default - base on a very unscientific local test, and only ~30% larger (compression remains still very effective, ~6x)
+		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed) // BestSpeed is Much Faster than default - base on a very unscientific local test
 		check(err)
 		defer gz.Close()
 		tmpl.Execute(gz, p)
@@ -151,7 +146,8 @@ func doContent(w http.ResponseWriter, r *http.Request) {
 
 	path := html.UnescapeString(r.URL.Path)
 	defer exitPath(w, "get content", path)
-	fullPath := enforcePath(path)
+	fullPath, err := enforcePath(path)
+	check(err)
 	stat, errStat := os.Stat(fullPath)
 	check(errStat)
 
@@ -174,7 +170,9 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	if err != nil && err != io.EOF { // errs EOF when no more parts to process
 		check(err)
 	}
-	dst, err := os.Create(enforcePath(path))
+	path, err = enforcePath(path)
+	check(err)
+	dst, err := os.Create(path)
 	check(err)
 	io.Copy(dst, part)
 	w.Write([]byte("ok"))
@@ -184,8 +182,9 @@ func zipRPC(w http.ResponseWriter, r *http.Request) {
 	zipPath := r.URL.Query().Get("zipPath")
 	zipName := r.URL.Query().Get("zipName")
 	defer exitPath(w, "zip", zipPath)
-	zipFullPath := enforcePath(zipPath)
-	_, err := os.Lstat(zipFullPath)
+	zipFullPath, err := enforcePath(zipPath)
+	check(err)
+	_, err = os.Lstat(zipFullPath)
 	check(err)
 	w.Header().Add("Content-Disposition", "attachment; filename=\""+zipName+".zip\"")
 	zipWriter := zip.NewWriter(w)
@@ -203,7 +202,7 @@ func zipRPC(w http.ResponseWriter, r *http.Request) {
 			return nil // hidden files not allowed
 		}
 		if f.Mode()&os.ModeSymlink != 0 {
-			panic(errors.New("symlink not allowed in zip downloads")) // filepath.Walk doesnt support symlinks
+			check(errors.New("symlink not allowed in zip downloads")) // filepath.Walk doesnt support symlinks
 		}
 
 		header, err := zip.FileInfoHeader(f)
@@ -224,39 +223,52 @@ func zipRPC(w http.ResponseWriter, r *http.Request) {
 }
 
 func rpc(w http.ResponseWriter, r *http.Request) {
-	var err error
+	type rpcCall struct {
+		Call string   `json:"call"`
+		Args []string `json:"args"`
+	}
 	var rpc rpcCall
 	defer exitPath(w, "rpc", rpc)
 	bodyBytes, err := io.ReadAll(r.Body)
 	check(err)
 	json.Unmarshal(bodyBytes, &rpc)
 
+	path0, err := enforcePath(rpc.Args[0])
+	path1 := ""
+	check(err)
+	if len(rpc.Args) > 1 {
+		path1, err = enforcePath(rpc.Args[1])
+		check(err)
+	}
+
 	if rpc.Call == "mkdirp" {
-		err = os.MkdirAll(enforcePath(rpc.Args[0]), os.ModePerm)
-	} else if rpc.Call == "mv" {
-		err = os.Rename(enforcePath(rpc.Args[0]), enforcePath(rpc.Args[1]))
+		err = os.MkdirAll(path0, os.ModePerm)
+	} else if rpc.Call == "mv" && len(rpc.Args) == 2 {
+		err = os.Rename(path0, path1)
 	} else if rpc.Call == "rm" {
-		err = os.RemoveAll(enforcePath(rpc.Args[0]))
+		err = os.RemoveAll(path0)
+	} else {
+		err = errors.New("invalid rpc call")
 	}
 
 	check(err)
 	w.Write([]byte("ok"))
 }
 
-func enforcePath(p string) string {
+func enforcePath(p string) (string, error) {
 	joined := filepath.Join(rootPath, strings.TrimPrefix(p, *extraPath))
 	fp, err := filepath.Abs(joined)
-	sl, _ := filepath.EvalSymlinks(fp) // err skipped as it would error for unexistent files (RPC check). The actual behaviour is tested below
+	sl, _ := filepath.EvalSymlinks(fp) // err skipped as it would error for inexistent files (RPC check). The actual behaviour is tested below
 
 	// panic if we had a error getting absolute path,
 	// ... or if path doesnt contain the prefix path we expect,
 	// ... or if we're skipping hidden folders, and one is requested,
 	// ... or if we're skipping symlinks, path exists, and a symlink out of bound requested
 	if err != nil || !strings.HasPrefix(fp, rootPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, rootPath) {
-		panic(errors.New("invalid path"))
+		return "", errors.New("invalid path")
 	}
 
-	return fp
+	return fp, nil
 }
 
 func main() {

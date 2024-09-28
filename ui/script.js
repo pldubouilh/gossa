@@ -153,8 +153,11 @@ function rpc (call, args, cb) {
   xhr.open('POST', location.origin + window.extraPath + '/rpc')
   xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
   xhr.send(JSON.stringify({ call, args }))
-  xhr.onload = cb
-  xhr.onerror = () => flicker(sadBadge)
+  xhr.onload = () => cb(false)
+  xhr.onerror = () => {
+    flicker(sadBadge)
+    cb(true)
+  }
 }
 
 const mkdirCall = (path, cb) => rpc('mkdirp', [prependPath(path)], cb)
@@ -315,28 +318,36 @@ const textTypes = ['.txt', '.rtf', '.md', '.markdown', '.log', '.yaml', '.yml']
 const isTextFile = src => src && textTypes.find(type => src.toLocaleLowerCase().includes(type))
 let fileEdited
 
-function saveText (quitting) {
+function saveText (cb) {
   const formData = new FormData()
   formData.append(fileEdited, editor.value)
-  const path = encodeURIComponent(decodeURI(location.pathname) + fileEdited)
+  const fname = fileEdited + ".swp"
+  const path = encodeURIComponent(decodeURI(location.pathname) + fname)
   upload(0, formData, path, () => {
     toast.style.display = 'none'
-    if (!quitting) return
-    clearInterval(window.padTimer)
-    window.onbeforeunload = null
-    resetView()
-    softPrev()
-    refresh()
+    cb()
   }, () => {
     toast.style.display = 'block'
-    if (!quitting) return
     alert('cant save!\r\nleave window open to resume saving\r\nwhen connection back up')
   })
 }
 
 function padOff () {
   if (!isEditorMode()) { return }
-  saveText(true)
+  const swapfile = fileEdited + ".swp"
+  saveText(() => {
+    mvCall(prependPath(swapfile), prependPath(fileEdited), err => {
+      if (err) {
+        alert('cant save!\r\nleave window open to resume saving\r\nwhen connection back up')
+        return
+      }
+      clearInterval(window.padTimer)
+      window.onbeforeunload = null
+      resetView()
+      softPrev()
+      refresh()
+    })
+  })
   return true
 }
 
