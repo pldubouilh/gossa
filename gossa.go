@@ -100,8 +100,9 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 	p.Title = template.HTML(html.EscapeString(title))
 
 	for _, el := range files {
-		info, err := el.Info()
-		if err != nil {
+		info, errInfo := el.Info()
+		el, err := os.Stat(fullPath + "/" + el.Name())
+		if err != nil || errInfo != nil {
 			log.Println("error - cant stat a file", err)
 			continue
 		}
@@ -109,7 +110,7 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 		if *skipHidden && strings.HasPrefix(el.Name(), ".") {
 			continue // dont print hidden files if we're not allowed
 		}
-		if *symlinks && info.Mode()&os.ModeSymlink != 0 {
+		if !*symlinks && info.Mode()&os.ModeSymlink != 0 {
 			continue // dont follow symlinks if we're not allowed
 		}
 
@@ -126,7 +127,7 @@ func replyList(w http.ResponseWriter, r *http.Request, fullPath string, path str
 		} else {
 			sl := strings.Split(name, ".")
 			ext := strings.ToLower(sl[len(sl)-1])
-			row := rowTemplate{name, template.URL(href), humanize(info.Size()), ext}
+			row := rowTemplate{name, template.URL(href), humanize(el.Size()), ext}
 			p.RowsFiles = append(p.RowsFiles, row)
 		}
 	}
