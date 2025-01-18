@@ -238,6 +238,8 @@ func doTestRegular(t *testing.T, url string, testExtra bool) {
 	hasListing := strings.Contains(body0, `readme.md`)
 	body1 = get(t, url+"/support/readme.md")
 	hasReadme := strings.Contains(body1, `the master branch is automatically built and pushed`)
+	body2 = get(t, url)
+	hasMainListing := strings.Contains(body2, `href="support">support/</a>`)
 
 	if !testExtra && hasReadme {
 		t.Fatal("error symlink file reached where illegal")
@@ -247,6 +249,11 @@ func doTestRegular(t *testing.T, url string, testExtra bool) {
 	if !testExtra && hasListing {
 		t.Fatal("error symlink folder reached where illegal")
 	} else if testExtra && !hasListing {
+		t.Fatal("error symlink folder unreachable")
+	}
+	if !testExtra && hasMainListing {
+		t.Fatal("error symlink folder where illegal")
+	} else if testExtra && !hasMainListing {
 		t.Fatal("error symlink folder unreachable")
 	}
 
