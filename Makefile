@@ -1,4 +1,4 @@
-FLAGS := -trimpath
+FLAGS := -trimpath -ldflags="-w -s"
 NOCGO := CGO_ENABLED=0
 
 build::

@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.23.0-alpine AS builder
+FROM docker.io/library/golang:1.23.4-alpine AS builder
 RUN apk add --no-cache make
 WORKDIR /gossaSrc
 COPY . /gossaSrc
