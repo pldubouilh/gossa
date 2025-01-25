@@ -749,40 +749,52 @@ document.body.addEventListener('keydown', e => {
     return
   }
 
-  // Ctrl keys
-  if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
-    switch (e.code) {
-      case 'KeyC':
-        return prevent(e) || isRo() || cpPath()
+  // Modifier keys
+  if (!e.shiftKey) {
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.code) {
+        case 'KeyC':
+          return prevent(e) || isRo() || cpPath()
 
-      case 'KeyH':
-        return prevent(e) || isRo() || helpToggle()
+        case 'KeyH':
+          return prevent(e) || isRo() || helpToggle()
 
-      case 'KeyX':
-        return prevent(e) || isRo() || onCut()
+        case 'KeyX':
+          return prevent(e) || isRo() || onCut()
 
-      case 'KeyR':
-        return prevent(e) || refresh()
+        case 'KeyR':
+          return prevent(e) || refresh()
 
-      case 'KeyV':
-        return prevent(e) || isRo() || ensureMove() || onPaste()
+        case 'KeyV':
+          return prevent(e) || isRo() || ensureMove() || onPaste()
 
-      case 'Backspace':
-        return prevent(e) || isRo() || window.rm(e)
+        case 'Backspace':
+          return prevent(e) || isRo() || window.rm(e)
 
-      case 'KeyE':
-        return prevent(e) || isRo() || window.rename(e)
+        case 'KeyE':
+          return prevent(e) || isRo() || window.rename(e)
 
-      case 'KeyM':
-        return prevent(e) || isRo() || window.mkdirBtn()
+        case 'KeyM':
+          return prevent(e) || isRo() || window.mkdirBtn()
 
-      case 'KeyU':
-        return prevent(e) || isRo() || manualUpload.click()
+        case 'KeyU':
+          return prevent(e) || isRo() || manualUpload.click()
 
-      case 'Enter':
-      case 'ArrowRight':
-        return prevent(e) || dl(getASelected())
+        case 'Enter':
+        case 'ArrowRight':
+          return prevent(e) || dl(getASelected())
+      }
     }
+  } else {
+      // Workaround Firefox requirement for transient activation
+      // https://developer.mozilla.org/en-US/docs/Web/Security/User_activation
+      // Firefox requires user interaction (that is not reserved by the user agent)
+      // before a file picker can be displayed. This means that ctrl/meta are not
+      // usable as modifiers until the user clicks the page or presses another
+      // non-modifier key. To work around this, the shift key can be used, instead.
+      if (e.code == 'KeyU') {
+          return prevent(e) || isRo() || manualUpload.click()
+      }
   }
 
   switch (e.code) {
