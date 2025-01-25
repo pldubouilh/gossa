@@ -231,11 +231,12 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	check(err)
 	json.Unmarshal(bodyBytes, &rpc)
 
-	if rpc.Call == "mkdirp" {
+	switch rpc.Call {
+	case "mkdirp":
 		err = os.MkdirAll(enforcePath(rpc.Args[0]), os.ModePerm)
-	} else if rpc.Call == "mv" {
+	case "mv":
 		err = os.Rename(enforcePath(rpc.Args[0]), enforcePath(rpc.Args[1]))
-	} else if rpc.Call == "rm" {
+	case "rm":
 		err = os.RemoveAll(enforcePath(rpc.Args[0]))
 	}
 
