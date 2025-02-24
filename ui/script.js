@@ -153,21 +153,14 @@ function rpc (call, args, cb) {
   xhr.open('POST', location.origin + window.extraPath + '/rpc')
   xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
   xhr.send(JSON.stringify({ call, args }))
-  // set the callback function (cb) to true to copy the response to the clipboard
-  if (cb === true) {
-    xhr.onload = () => {
-      navigator.clipboard.writeText(xhr.responseText)
-    };
-  } else {
-    xhr.onload = cb
-  }
+  xhr.onload = cb
   xhr.onerror = () => flicker(sadBadge)
 }
 
 const mkdirCall = (path, cb) => rpc('mkdirp', [prependPath(path)], cb)
 const rmCall = (path1, cb) => rpc('rm', [prependPath(path1)], cb)
 const mvCall = (path1, path2, cb) => rpc('mv', [path1, path2], cb)
-const sumCall = (path, type) => {rpc('sum', [prependPath(path), type], true)}
+const sumCall = (path, type, cb) => rpc('sum', [prependPath(path), type], cb)
 
 // File upload
 let totalDone = 0
@@ -669,8 +662,15 @@ function helpOff () {
 
 // checksums
 function getSum (type) {
-  sumCall(getASelected().innerText, type)
+  upBarPc.style.display = 'block'
+  upBarPc.innerText = 'computing checksum...'
+  upBarPc.style.width = '100%'
   sumsOff()
+  sumCall(getASelected().innerText, type, loaded => {
+    navigator.clipboard.writeText(loaded.target.responseText)
+    upBarPc.style.display = 'none'
+    flicker(okBadge)
+  })
 }
 
 const isSumsMode = () => sums.style.display === 'block'
@@ -678,7 +678,7 @@ const isSumsMode = () => sums.style.display === 'block'
 const sumsToggle = () => isSumsMode() ? sumsOff() : sumsOn()
 
 function sumsOn () {
-  if (getASelected().innerText.endsWith('/')) {
+  if (isFolder(getASelected())) {
     alert('cannot checksum a directory')
     return
   }
