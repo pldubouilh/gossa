@@ -344,12 +344,8 @@ h1 > span:hover {
   right: 30px;
 }
 
-#helpHead {
-  margin-top: 60px;
-  text-align: center;
-}
-
-#helpTable {
+#helpTable,
+#sumsTable {
   border-collapse: collapse;
   width: 70%;
   max-width: 790px;
@@ -360,7 +356,8 @@ h1 > span:hover {
   overflow-y: auto;
 }
 
-#helpTable td {
+#helpTable td,
+#sumsTable td {
   width: 200px;
   padding: 9px;
   border: 1px solid #fff;
@@ -369,7 +366,8 @@ h1 > span:hover {
   margin: 0;
 }
 
-#help {
+#help,
+#sums {
   background-color: black;
   position: absolute;
   top: 0px;

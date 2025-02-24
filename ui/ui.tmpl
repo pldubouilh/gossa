@@ -30,12 +30,21 @@
         <tr><td>Ctrl/Meta + M</td><td>create a new directory</td></tr>
         <tr><td>Ctrl/Meta + X</td><td>cut selected path</td></tr>
         <tr><td>Ctrl/Meta + V</td><td>paste previously selected paths to directory</td></tr>
+        <tr><td>Ctrl/Meta + Z</td><td>copy checksums of selected file</td></tr>
         <tr><td>Ctrl + click</td><td>download selected item as archive</td></tr>
         <tr><td>click file icon </td><td>rename item</td></tr>
         <tr><td>double click file icon</td><td>delete item</td></tr>
         <tr><td>drag-and-drop item on UI</td><td>move item</td></tr>
         <tr><td>drag-and-drop external item</td><td>upload file/folders</td></tr>
         <tr><td>any other letter</td><td>fuzzy search</td></tr>
+    </tbody></table></div>
+
+    <div onclick="window.sumsOff()" style="display: none;" id="sums"><table id="sumsTable"><tbody>
+        <tr><td>Key</td><td>Hash Algorithm</td></tr>
+        <tr><td>1</td><td>copy sha1 sum</td></tr>
+        <tr><td>2</td><td>copy sha256 sum</td></tr>
+        <tr><td>3</td><td>copy sha512 sum</td></tr>
+        <tr><td>5</td><td>copy md5 sum</td></tr>
     </tbody></table></div>
 
     <div style="display: none;" onclick="window.quitAll()" id="quitAll"><i style="display: none;" id="toast">cant reach server</i></div>
