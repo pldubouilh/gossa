@@ -232,10 +232,11 @@ func zipRPC(w http.ResponseWriter, r *http.Request) {
 func rpc(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var rpc rpcCall
-	defer exitPath(w, "rpc", rpc)
+	defer exitPath(w, "rpc", &rpc)
 	bodyBytes, err := io.ReadAll(r.Body)
 	check(err)
 	json.Unmarshal(bodyBytes, &rpc)
+	ret := []byte("ok")
 
 	switch rpc.Call {
 	case "mkdirp":
@@ -245,9 +246,8 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	case "rm":
 		err = os.RemoveAll(enforcePath(rpc.Args[0]))
 	case "sum":
-		var file *os.File
-		enforcedPath := enforcePath(rpc.Args[0])
-		file, err = os.Open(enforcedPath)
+		file, err := os.Open(enforcePath(rpc.Args[0]))
+		check(err)
 		var hash hash.Hash
 		switch rpc.Args[1] {
 		case "md5":
@@ -262,14 +262,12 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 		_, err = io.Copy(hash, file)
 		check(err)
 		checksum := hash.Sum(nil)
-		checksumHex := make([]byte, hex.EncodedLen(len(checksum)))
-		hex.Encode(checksumHex, checksum)
-		w.Write(checksumHex)
-		return
+		ret = make([]byte, hex.EncodedLen(len(checksum)))
+		hex.Encode(ret, checksum)
 	}
 
 	check(err)
-	w.Write([]byte("ok"))
+	w.Write(ret)
 }
 
 func enforcePath(p string) string {
