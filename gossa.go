@@ -3,11 +3,17 @@ package main
 import (
 	"archive/zip"
 	"compress/gzip"
+	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
 	_ "embed"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"hash"
 	"html"
 	"html/template"
 	"io"
@@ -238,6 +244,28 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 		err = os.Rename(enforcePath(rpc.Args[0]), enforcePath(rpc.Args[1]))
 	case "rm":
 		err = os.RemoveAll(enforcePath(rpc.Args[0]))
+	case "sum":
+		var file *os.File
+		enforcedPath := enforcePath(rpc.Args[0])
+		file, err = os.Open(enforcedPath)
+		var hash hash.Hash
+		switch rpc.Args[1] {
+		case "md5":
+			hash = md5.New()
+		case "sha1":
+			hash = sha1.New()
+		case "sha256":
+			hash = sha256.New()
+		case "sha512":
+			hash = sha512.New()
+		}
+		_, err = io.Copy(hash, file)
+		check(err)
+		checksum := hash.Sum(nil)
+		checksumHex := make([]byte, hex.EncodedLen(len(checksum)))
+		hex.Encode(checksumHex, checksum)
+		w.Write(checksumHex)
+		return
 	}
 
 	check(err)
