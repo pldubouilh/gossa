@@ -583,7 +583,7 @@ picsHolder.addEventListener('touchend', e => {
 }, false)
 
 // Video player
-const videosTypes = ['.mp4', '.webm', '.ogv', '.ogg', '.mp3', '.flac', '.wav']
+const videosTypes = ['.mkv', '.mp4', '.webm', '.ogv', '.ogg', '.mp3', '.flac', '.wav']
 const isVideo = src => src && videosTypes.find(type => src.toLocaleLowerCase().includes(type))
 const isVideoMode = () => video.style.display === 'flex'
 const videoFs = () => video.requestFullscreen()
