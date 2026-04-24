@@ -67,7 +67,11 @@ func check(e error) {
 
 func exitPath(w http.ResponseWriter, s ...interface{}) {
 	if r := recover(); r != nil {
-		log.Println("error", s, r)
+		if *verb {
+			log.Printf("error %v: %v", s, r)
+		} else {
+			log.Println("error", s, r)
+		}
 		w.WriteHeader(500)
 		w.Write([]byte("error"))
 	} else if *verb {
@@ -183,6 +187,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 	dst, err := os.Create(enforcePath(path))
 	check(err)
+	defer dst.Close()
 	io.Copy(dst, part)
 	w.Write([]byte("ok"))
 }
@@ -221,8 +226,8 @@ func zipRPC(w http.ResponseWriter, r *http.Request) {
 		check(err)
 		file, err := os.Open(path)
 		check(err)
-		defer file.Close()
 		_, err = io.Copy(headerWriter, file)
+		file.Close()
 		check(err)
 		return nil
 	})
@@ -259,6 +264,8 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 			hash = sha256.New()
 		case "sha512":
 			hash = sha512.New()
+		default:
+			check(errors.New("unsupported hash algorithm: " + rpc.Args[1]))
 		}
 		_, err = io.Copy(hash, file)
 		check(err)
@@ -272,7 +279,9 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 }
 
 func enforcePath(p string) string {
-	joined := filepath.Join(rootPath, strings.TrimPrefix(p, *extraPath))
+	// Clean the path to remove any . or .. components
+	cleanPath := filepath.Clean(strings.TrimPrefix(p, *extraPath))
+	joined := filepath.Join(rootPath, cleanPath)
 	fp, err := filepath.Abs(joined)
 	sl, _ := filepath.EvalSymlinks(fp) // err skipped as it would error for unexistent files (RPC check). The actual behaviour is tested below
 
@@ -280,7 +289,7 @@ func enforcePath(p string) string {
 	// ... or if path doesnt contain the prefix path we expect,
 	// ... or if we're skipping hidden folders, and one is requested,
 	// ... or if we're skipping symlinks, path exists, and a symlink out of bound requested
-	if err != nil || !strings.HasPrefix(fp, rootPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, rootPath) {
+	if err != nil || !strings.HasPrefix(fp, rootPath) || *skipHidden && strings.Contains(cleanPath, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, rootPath) {
 		panic(errors.New("invalid path"))
 	}
 
@@ -299,6 +308,20 @@ func main() {
 	var err error
 	rootPath, err = filepath.Abs(rootPath)
 	check(err)
+
+	// Check if the directory exists and is accessible
+	stat, err := os.Stat(rootPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Fatalf("Directory does not exist: %s", rootPath)
+		}
+		check(err)
+	}
+
+	if !stat.IsDir() {
+		log.Fatalf("Path is not a directory: %s", rootPath)
+	}
+
 	server := &http.Server{Addr: *host + ":" + *port, Handler: handler}
 
 	if !*ro {

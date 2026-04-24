@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -25,7 +25,7 @@ func trimSpaces(str string) string {
 func getRaw(t *testing.T, url string) []byte {
 	resp, err := http.Get(url)
 	dieMaybe(t, err)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	dieMaybe(t, err)
 	return body
 }
@@ -59,7 +59,7 @@ func postDummyFile(t *testing.T, url string, path string, payload string) string
 	resp, err := http.DefaultClient.Do(req)
 	dieMaybe(t, err)
 	defer resp.Body.Close()
-	bodyS, err := ioutil.ReadAll(resp.Body)
+	bodyS, err := io.ReadAll(resp.Body)
 	dieMaybe(t, err)
 	return trimSpaces(string(bodyS))
 }
@@ -67,7 +67,7 @@ func postDummyFile(t *testing.T, url string, path string, payload string) string
 func postJSON(t *testing.T, url string, what string) string {
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(what)))
 	dieMaybe(t, err)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	dieMaybe(t, err)
 	return trimSpaces(string(body))
 }
