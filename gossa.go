@@ -271,6 +271,14 @@ func rpc(w http.ResponseWriter, r *http.Request) {
 	w.Write(ret)
 }
 
+// isWithinRoot reports whether fp is rootDir itself or a path inside it.
+// A plain strings.HasPrefix(fp, rootDir) would also match a sibling
+// directory whose name happens to start with rootDir's name, e.g. rootDir
+// "/srv/share" would wrongly match "/srv/share-backup".
+func isWithinRoot(fp string, rootDir string) bool {
+	return fp == rootDir || strings.HasPrefix(fp, rootDir+string(os.PathSeparator))
+}
+
 func enforcePath(p string) string {
 	joined := filepath.Join(rootPath, strings.TrimPrefix(p, *extraPath))
 	fp, err := filepath.Abs(joined)
@@ -280,7 +288,7 @@ func enforcePath(p string) string {
 	// ... or if path doesnt contain the prefix path we expect,
 	// ... or if we're skipping hidden folders, and one is requested,
 	// ... or if we're skipping symlinks, path exists, and a symlink out of bound requested
-	if err != nil || !strings.HasPrefix(fp, rootPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !strings.HasPrefix(sl, rootPath) {
+	if err != nil || !isWithinRoot(fp, rootPath) || *skipHidden && strings.Contains(p, "/.") || !*symlinks && len(sl) > 0 && !isWithinRoot(sl, rootPath) {
 		panic(errors.New("invalid path"))
 	}
 
