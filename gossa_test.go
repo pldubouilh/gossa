@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -387,4 +389,35 @@ func TestRo(t *testing.T) {
 
 func TestRunMain(t *testing.T) {
 	main()
+}
+
+// A plain strings.HasPrefix(fp, rootPath) check in enforcePath would also
+// match a sibling directory whose name happens to start with rootPath's
+// name (e.g. root "share" matching sibling "share-secret"), letting a
+// crafted "../" path escape the shared directory entirely. This test
+// reproduces that scenario directly against enforcePath.
+func TestEnforcePathRejectsSiblingDirectory(t *testing.T) {
+	base, err := ioutil.TempDir("", "gossa-sibling-test")
+	dieMaybe(t, err)
+	defer func() { _ = os.RemoveAll(base) }()
+
+	sharedDir := filepath.Join(base, "share")
+	siblingDir := filepath.Join(base, "share-secret")
+	dieMaybe(t, os.MkdirAll(sharedDir, 0755))
+	dieMaybe(t, os.MkdirAll(siblingDir, 0755))
+	dieMaybe(t, ioutil.WriteFile(filepath.Join(siblingDir, "flag.txt"), []byte("secret"), 0644))
+
+	savedRoot := rootPath
+	defer func() { rootPath = savedRoot }()
+	rootPath, err = filepath.Abs(sharedDir)
+	dieMaybe(t, err)
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("enforcePath allowed escaping into a sibling directory of rootPath")
+		}
+	}()
+
+	enforcePath("../share-secret/flag.txt")
 }
